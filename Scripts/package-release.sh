@@ -93,8 +93,10 @@ Pop ${VERSION}（构建 ${BUILD}）
 
 首次使用截图、取词和回填时，按应用提示授予相应系统权限。
 此安装包不会自动安装或更改系统权限。
-签名详情及首次打开说明请参阅项目 README；ad hoc 签名版本未经 Apple 公证，
-macOS Gatekeeper 可能阻止首次打开，不能保证双击直接启动。
+ad hoc 签名版本未经 Apple 公证。首次下载后若 macOS 阻止打开，
+先尝试打开一次，再进入「系统设置 → 隐私与安全性」，确认文件来源后选择「仍要打开」。
+无需关闭系统安全保护。签名详情与完整说明见项目 README：
+https://github.com/YEMIN11238/Pop
 INSTALL
 
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$STAGING_DIRECTORY/image/Pop.app" "$STAGING_DIRECTORY/$ASSET_NAME.zip"

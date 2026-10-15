@@ -152,7 +152,7 @@ enum FeatureSelfCheck {
         state.input = "This full sentence has no entry in this dictionary, fixture 2026."
         state.translate()
         try await waitForCompletion(state)
-        try check(state.results.count == 2 && state.results.allSatisfy { $0.error?.contains("不支持翻译句子") == true && !$0.loading && $0.dictionary == nil }, "句子未命中应保留独立错误卡")
+        try check(state.results.count == 2 && state.results.allSatisfy { $0.error?.contains("如需翻译句子") == true && !$0.loading && $0.dictionary == nil }, "句子未命中应保留独立错误卡")
         let direct = try await state.translateDirect(TranslationRequest(text: "running", source: "en", target: "zh-Hans"), service: first)
         try check(direct.dictionary?.exchanges.contains(where: { $0.name == "原形" && $0.words.contains("run") }) == true, "静默共用的 direct 分发没有返回本地词形")
         do {

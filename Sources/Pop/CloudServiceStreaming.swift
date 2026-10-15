@@ -51,6 +51,11 @@ struct CloudServiceAIAccumulator {
     private var refusal = ""
     private var responses = ProviderResponsesAccumulator()
 
+    init(kind: String, format: String) {
+        self.kind = kind
+        self.format = format
+    }
+
     mutating func event(name: String, data: String) throws -> Bool {
         if data == "[DONE]" {
             if kind == "openAIResponses", !responses.terminal { throw HTTPTranslationError.invalidResponse("Responses 流在 completed 事件之前结束。") }

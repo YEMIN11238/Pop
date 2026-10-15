@@ -53,6 +53,10 @@ struct ScreenshotSelectionState {
     private var downPoint = CGPoint.zero
     private var lastMovePoint = CGPoint.zero
 
+    init(bounds: CGRect) {
+        self.bounds = bounds
+    }
+
     var isDragging: Bool { phase != .hovering }
     var selectionRect: CGRect? {
         if phase == .hovering || phase == .pendingWindow { return hoveredWindow?.rect.intersection(bounds) }

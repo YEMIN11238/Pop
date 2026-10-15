@@ -19,26 +19,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [macos-15, macos-15-arm64]
+        runner: [macos-15-intel, macos-15-arm64]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select a stable Xcode with macOS SDK 26 or later
+      - name: Verify native runner architecture
+        shell: bash
+        env:
+          RUNNER_LABEL: ${{ matrix.runner }}
+        run: |
+          set -euo pipefail
+          actual="$(uname -m)"
+          expected=arm64
+          [[ "$RUNNER_LABEL" != macos-15-intel ]] || expected=x86_64
+          printf 'Runner %s: %s (expected %s)\n' "$RUNNER_LABEL" "$actual" "$expected"
+          [[ "$actual" == "$expected" ]]
+
+      - name: Select a stable Xcode with macOS SDK 26
         shell: bash
         run: |
           set -euo pipefail
           for candidate in /Applications/Xcode_*.app; do
             [[ "$candidate" != *beta* && "$candidate" != *Beta* ]] || continue
             sdk="$(DEVELOPER_DIR="$candidate/Contents/Developer" xcrun --sdk macosx --show-sdk-version 2>/dev/null || true)"
-            if [[ "$sdk" =~ ^[0-9]+\. && "${sdk%%.*}" -ge 26 ]]; then
+            if [[ "$sdk" =~ ^[0-9]+\. && "${sdk%%.*}" -eq 26 ]]; then
               printf 'DEVELOPER_DIR=%s/Contents/Developer\n' "$candidate" >> "$GITHUB_ENV"
               printf 'Using %s with macOS SDK %s\n' "$candidate" "$sdk"
               exit 0
             fi
           done
-          echo 'No stable Xcode with macOS SDK 26+ is installed on this runner.' >&2
+          echo 'No stable Xcode with macOS SDK 26 is installed on this runner.' >&2
           exit 1
 
       - name: Check scripts and run native unit tests
@@ -52,6 +64,15 @@ jobs:
         if: matrix.runner == 'macos-15-arm64'
         shell: bash
         run: bash Scripts/package-release.sh
+
+      - name: Start packaged executable on macOS 15
+        if: matrix.runner == 'macos-15-arm64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(.build-release.noindex/app.noindex/Pop.app/Contents/MacOS/Pop --version)"
+          [[ -n "$version" ]]
+          printf '%s\n' "$version"
 
       # Artifacts are downloadable for review. This workflow deliberately does
       # not publish a GitHub Release and does not claim Developer ID notarization.
@@ -67,3 +88,41 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
+
+  download-smoke:
+    name: Start downloaded universal app (${{ matrix.runner }})
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15-intel, macos-15-arm64]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Pop-universal-downloads
+          path: downloads.noindex
+
+      - name: Verify and start the same release ZIP on each CPU
+        shell: bash
+        env:
+          RUNNER_LABEL: ${{ matrix.runner }}
+        run: |
+          set -euo pipefail
+          expected=arm64
+          [[ "$RUNNER_LABEL" != macos-15-intel ]] || expected=x86_64
+          [[ "$(uname -m)" == "$expected" ]]
+          cd downloads.noindex
+          shasum -a 256 -c SHA256SUMS.txt
+          archives=(Pop-*-universal.zip)
+          [[ "${#archives[@]}" == 1 && -f "${archives[0]}" ]]
+          mkdir unpacked.noindex
+          ditto -x -k "${archives[0]}" unpacked.noindex
+          codesign --verify --deep --strict unpacked.noindex/Pop.app
+          for architecture in arm64 x86_64; do
+            lipo unpacked.noindex/Pop.app/Contents/MacOS/Pop -verify_arch "$architecture"
+          done
+          version="$(unpacked.noindex/Pop.app/Contents/MacOS/Pop --version)"
+          [[ -n "$version" ]]
+          printf '%s: %s\n' "$expected" "$version"

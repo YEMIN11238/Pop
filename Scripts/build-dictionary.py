@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild pop's offline ECDICT SQLite database from an immutable public revision.
 
-Usage: python3 scripts/build-dictionary.py --download
+Usage: python3 Scripts/build-dictionary.py --download
 Only ecdict.csv is used. The separately restricted lemma.en.txt is not bundled.
 """
 import argparse

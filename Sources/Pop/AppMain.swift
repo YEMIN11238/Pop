@@ -7,6 +7,12 @@ import UniformTypeIdentifiers
 @main
 struct PopMain {
     @MainActor static func main() {
+        if CommandLine.arguments.contains("--version") {
+            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development"
+            let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unpackaged"
+            print("Pop \(version) (\(build))")
+            return
+        }
         if CommandLine.arguments.contains("--plugin-worker") {
             _ = NSApplication.shared
             NSApp.setActivationPolicy(.prohibited)
