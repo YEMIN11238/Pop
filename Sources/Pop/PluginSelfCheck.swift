@@ -6,6 +6,17 @@ import Darwin
 @MainActor
 enum PluginSelfCheck {
     static func run() async throws -> [String] {
+        try await runFixtures(includeProcessIsolation: true)
+    }
+
+    /// XCTest does not have Pop's --plugin-worker entry point. Exercise the same
+    /// JavaScriptCore fixtures here; the packaged executable runs the worker
+    /// fixtures through --plugin-self-check on each native CI architecture.
+    static func runInProcess() async throws -> [String] {
+        try await runFixtures(includeProcessIsolation: false)
+    }
+
+    private static func runFixtures(includeProcessIsolation: Bool) async throws -> [String] {
         let manager = FileManager.default
         let base = manager.temporaryDirectory.appendingPathComponent("Pop-Plugin-SelfCheck-\(UUID().uuidString)", isDirectory: true)
         try manager.createDirectory(at: base, withIntermediateDirectories: true)
@@ -266,7 +277,7 @@ enum PluginSelfCheck {
         try expect(signalResult.text == "cancelled", "$signal 接口与流式 HTTP 取消")
         checks.append("插件：$signal 订阅/解除/发送、query.cancelSignal 与流式请求取消通过")
         checks += try await PluginExtendedSelfCheck.run(base: base)
-        checks += try await PluginIsolationSelfCheck.run(base: base)
+        if includeProcessIsolation { checks += try await PluginIsolationSelfCheck.run(base: base) }
         return checks
     }
 

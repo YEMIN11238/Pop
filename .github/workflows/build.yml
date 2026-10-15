@@ -104,7 +104,7 @@ jobs:
           name: Pop-universal-downloads
           path: downloads.noindex
 
-      - name: Verify and start the same release ZIP on each CPU
+      - name: Verify, start and test plugins in the same release ZIP on each CPU
         shell: bash
         env:
           RUNNER_LABEL: ${{ matrix.runner }}
@@ -126,3 +126,26 @@ jobs:
           version="$(unpacked.noindex/Pop.app/Contents/MacOS/Pop --version)"
           [[ -n "$version" ]]
           printf '%s: %s\n' "$expected" "$version"
+          report="plugin-self-check-${expected}.json"
+          unpacked.noindex/Pop.app/Contents/MacOS/Pop --plugin-self-check > "$report"
+          cat "$report"
+          python3 - "$report" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as source:
+              report = json.load(source)
+          assert report["passed"] is True and report["scope"] == "plugins"
+          assert report["count"] == len(report["checks"]) and report["count"] >= 24
+          checks = report["checks"]
+          assert any("真实子进程异步/有序流式/完整结果" in check for check in checks)
+          assert any("真实子进程保留 originalText" in check for check in checks)
+          assert any("死循环硬超时" in check and "取消/卸载" in check for check in checks)
+          PY
+
+      - name: Upload native plugin self-check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pop-plugin-self-check-${{ matrix.runner }}
+          path: downloads.noindex/plugin-self-check-*.json
+          if-no-files-found: warn
+          retention-days: 14

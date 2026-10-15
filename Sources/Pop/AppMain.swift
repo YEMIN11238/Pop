@@ -20,6 +20,30 @@ struct PopMain {
             CFRunLoopRun()
             return
         }
+        if CommandLine.arguments.contains("--plugin-self-check") {
+            _ = NSApplication.shared
+            NSApp.setActivationPolicy(.prohibited)
+            Task { @MainActor in
+                var result: [String: Any] = ["scope": "plugins", "count": 0, "checks": [String](),
+                                           "appVersion": Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unpackaged",
+                                           "appBuild": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unpackaged"]
+                var status: Int32 = 0
+                do {
+                    let checks = try await PluginSelfCheck.run()
+                    result["passed"] = true; result["checks"] = checks; result["count"] = checks.count
+                } catch {
+                    result["passed"] = false; result["error"] = error.localizedDescription
+                    fputs("Plugin self-check failed: \(error.localizedDescription)\n", stderr)
+                    status = 1
+                }
+                result["completedAt"] = ISO8601DateFormatter().string(from: Date())
+                guard let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) else { exit(1) }
+                FileHandle.standardOutput.write(data); print()
+                exit(status)
+            }
+            CFRunLoopRun()
+            return
+        }
         if CommandLine.arguments.contains("--self-check") {
             _ = NSApplication.shared
             NSApp.setActivationPolicy(.prohibited)

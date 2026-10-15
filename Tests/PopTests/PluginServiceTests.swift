@@ -195,8 +195,8 @@ final class PluginServiceTests: XCTestCase {
 
     @MainActor
     func testExpandedPublicInterfacesUsingRealJavaScriptCoreFixtures() async throws {
-        let results = try await PluginSelfCheck.run()
-        XCTAssertGreaterThanOrEqual(results.count, 22)
+        let results = try await PluginSelfCheck.runInProcess()
+        XCTAssertGreaterThanOrEqual(results.count, 21)
         XCTAssertTrue(results.contains { $0.contains("AES 已知向量") && $0.contains("安全随机盐") })
         XCTAssertTrue(results.contains { $0.contains("OCR 图片 query") && $0.contains("坐标转换") })
         XCTAssertTrue(results.contains { $0.contains("TTS text/lang query") && $0.contains("URL 音频下载") })
@@ -204,6 +204,11 @@ final class PluginServiceTests: XCTestCase {
         XCTAssertTrue(results.contains { $0.contains("真实流式 HTTP") && $0.contains("跨块 UTF8") })
         XCTAssertTrue(results.contains { $0.contains("multipart") && $0.contains("二进制文件") })
         XCTAssertTrue(results.contains { $0.contains("$file 基础接口") && $0.contains("卸载清理") })
+        XCTAssertTrue(results.contains { $0.contains("完整词典") && $0.contains("think 标签") })
+        XCTAssertTrue(results.contains { $0.contains("originalText") && $0.contains("原文空行") })
+        XCTAssertTrue(results.contains { $0.contains("pluginValidate") && $0.contains("异步验证") })
+        XCTAssertTrue(results.contains { $0.contains("localhost WebSocket") && $0.contains("正常关闭") })
+        XCTAssertTrue(results.contains { $0.contains("appcast") && $0.contains("SHA256/ID 拒绝") })
     }
 
     /// Small uncompressed ZIP fixture writer; no external archives or user files are used.
