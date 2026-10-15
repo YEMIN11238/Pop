@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="获取 Pop 最新正式发布版的 macOS 通用 DMG 或 ZIP 安装包。">
+  <meta name="theme-color" content="#f8f9fc">
+  <title>下载 Pop · macOS 划词翻译与截图 OCR</title>
+  <link rel="icon" href="assets/app-icon.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body data-download-page>
+  <a class="skip-link" href="#main">跳到内容</a>
+  <header class="site-header"><a class="brand" href="./"><img src="assets/app-icon.png" width="36" height="36" alt=""><span>Pop</span></a><nav aria-label="主导航"><a href="./#start">安装帮助</a><a href="https://github.com/YEMIN11238/Pop/releases/latest">GitHub Releases <span aria-hidden="true">↗</span></a></nav></header>
+  <main class="download-main" id="main">
+    <section class="download-card" aria-labelledby="download-title">
+      <img class="download-icon" src="assets/app-icon.png" alt="" width="80" height="80">
+      <p class="eyebrow">项目 GitHub 发布包</p>
+      <h1 id="download-title">下载 Pop</h1>
+      <p>macOS 15+ · Apple Silicon / Intel 通用安装包</p>
+      <p class="download-status" id="download-status" role="status" aria-live="polite">正在查询最新正式版本…</p>
+      <a class="button primary download-file" id="download-file" hidden>下载安装包</a>
+      <p class="file-detail" id="file-detail" hidden></p>
+      <a class="text-link" id="checksum-link" hidden>查看 SHA256 校验文件</a>
+      <div class="download-alternatives"><a href="download.html?format=dmg">DMG 安装包</a><a href="download.html?format=zip">ZIP 压缩包</a><a href="https://github.com/YEMIN11238/Pop/releases/latest">进入最新 Release <span aria-hidden="true">↗</span></a></div>
+      <noscript><p class="version-note">浏览器未启用 JavaScript。请直接打开 <a href="https://github.com/YEMIN11238/Pop/releases/latest">最新 Release</a>，在 Assets 中选择文件名以 <code>-universal.dmg</code> 或 <code>-universal.zip</code> 结尾的安装包。</p></noscript>
+    </section>
+    <aside class="download-help"><h2>下载后怎么打开？</h2><p>打开 DMG，把 <strong>Pop.app</strong> 拖入 <strong>Applications</strong>。ZIP 用户解压后同样将应用移入应用程序。</p><p>当前发布包没有 Apple Developer ID 签名或公证。若 macOS 拦截，先尝试打开一次，再到「系统设置 → 隐私与安全性」选择「仍要打开」。</p><a class="text-link" href="https://github.com/YEMIN11238/Pop/blob/main/docs/first-use.md">查看首次启动、权限与更新说明 <span aria-hidden="true">→</span></a></aside>
+  </main>
+  <footer class="site-footer compact"><p>安装包直接来自 <a href="https://github.com/YEMIN11238/Pop">YEMIN11238/Pop</a> 的 GitHub Release。本页不会自动打开或执行下载文件。</p></footer>
+</body>
+</html>

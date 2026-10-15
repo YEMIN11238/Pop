@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Pop 是 macOS 划词翻译与截图 OCR 工具。在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。">
+  <meta name="theme-color" content="#f8f9fc">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Pop · macOS 划词翻译与截图 OCR">
+  <meta property="og:description" content="在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。">
+  <meta property="og:url" content="https://yemin11238.github.io/Pop/">
+  <meta property="og:image" content="https://yemin11238.github.io/Pop/assets/input-translation.png">
+  <title>Pop · macOS 划词翻译与截图 OCR</title>
+  <link rel="icon" href="assets/app-icon.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到内容</a>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Pop 首页"><img src="assets/app-icon.png" width="36" height="36" alt=""><span>Pop</span></a>
+    <nav aria-label="主导航">
+      <a href="#scenes">实际演示</a>
+      <a href="#start">第一次使用</a>
+      <a href="https://github.com/YEMIN11238/Pop">GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow">随手取词 · 看图识字 · 本地查词</p>
+      <h1 id="hero-title">Pop <span class="title-dot">·</span> <span>macOS 划词翻译与截图 OCR</span></h1>
+      <p class="intro">在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。</p>
+
+      <figure class="hero-demo">
+        <div class="media-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>本地词典 · 从查询到复制粘贴</span><span class="media-label">真实操作关键步骤回放</span></div>
+        <a class="demo-full-size" href="assets/demo.gif" aria-label="打开完整尺寸的本地词典操作回放">
+          <img class="demo-motion" src="assets/demo.gif" alt="本地词典真实操作关键步骤回放：从窗口菜单新建输入窗口，输入 apple 并按回车，查看词典结果，点击复制，再粘贴到文本编辑。" fetchpriority="high">
+          <img class="demo-still" src="assets/input-translation.png" alt="暂停时显示的静态截图：Pop 手动输入英文后的 Apple 系统翻译结果。">
+        </a>
+        <button class="motion-toggle" type="button" data-motion-toggle aria-pressed="false" hidden>暂停动图</button>
+        <figcaption>真实操作关键步骤回放：菜单输入 → 回车查词 → 复制 → 粘贴。<a href="assets/demo.gif">查看清晰原图 ↗</a></figcaption>
+      </figure>
+
+      <div class="download-actions" id="download">
+        <a class="button primary" href="download.html?format=dmg"><span aria-hidden="true">↓</span> 下载 Pop · DMG</a>
+        <a class="button secondary" href="download.html?format=zip">下载 ZIP</a>
+      </div>
+      <p class="platforms"><span>macOS 15+</span><span>Apple Silicon / Intel</span><span data-latest-version>最新稳定版</span></p>
+      <p class="first-open-note">当前发布包没有 Apple Developer ID 签名或公证。首次打开可能需要系统确认。<a href="#start">查看安装步骤 <span aria-hidden="true">→</span></a></p>
+    </section>
+
+    <section class="section scenes" id="scenes" aria-labelledby="scenes-title">
+      <div class="section-heading"><p class="eyebrow">三个日常场景</p><h2 id="scenes-title">把文字接到下一步。</h2><p>留在正在阅读的内容附近，完成翻译、识别与查词。</p></div>
+
+      <article class="scene-card">
+        <div class="scene-copy"><span class="scene-number">01 / 阅读翻译</span><h3>看到不懂的句子，带进 Pop 翻译。</h3><p>输入或粘贴原文，查看 Apple 系统翻译结果，再复制到需要的地方。默认划词快捷键为 <kbd>⌥</kbd><kbd>D</kbd>，用于从其他应用取词。</p><p class="scene-detail">本次截图使用手动输入入口，无个人云 API Key。跨应用划词需辅助功能权限，本轮尚未完成实录。</p></div>
+        <figure><a href="assets/input-translation.png" aria-label="查看完整的手动输入翻译截图"><img src="assets/input-translation.png" alt="手动输入翻译实测截图：Pop 显示测试英文原文与 Apple 系统英中翻译结果。" loading="lazy"></a><figcaption>本次展示：手动输入 → Apple 系统英中翻译</figcaption></figure>
+      </article>
+
+      <article class="scene-card">
+        <div class="scene-copy"><span class="scene-number">02 / 图片文字</span><h3>图片里的字，也能变成文本。</h3><p>选择一张已有图片，Vision 在本机识别文字，结果可编辑、复制。截图 OCR 的默认快捷键为 <kbd>⌥</kbd><kbd>⇧</kbd><kbd>S</kbd>。</p><p class="scene-detail">本次展示选图 OCR，无需录屏权限。屏幕框选需要录屏权限，本轮尚未完成实录。</p></div>
+        <figure><a href="assets/file-ocr.png" aria-label="查看完整的选图 OCR 截图"><img src="assets/file-ocr.png" alt="选图 OCR 实测截图：Pop 通过 Vision 识别测试图片文字并显示结果。" loading="lazy"></a><figcaption>本次展示：选图 OCR → Vision → 复制</figcaption></figure>
+      </article>
+
+      <article class="scene-card">
+        <div class="scene-copy"><span class="scene-number">03 / 本地词典</span><h3>查一个词，不必先配置云服务。</h3><p>从菜单打开输入窗口，输入英文单词并按回车。随包 ECDICT 英汉词典提供本地释义，结果可以复制。输入翻译的默认快捷键为 <kbd>⌥</kbd><kbd>A</kbd>。</p><p class="scene-detail">本次从窗口菜单进入并完成复制粘贴。词库随包提供，可离线查英文词条，不承担整句翻译。</p></div>
+        <figure><a href="assets/dictionary.png" aria-label="查看完整的本地词典截图"><img src="assets/dictionary.png" alt="本地词典实测截图：通过菜单输入 apple 后，Pop 显示本地英汉释义。" loading="lazy"></a><figcaption>菜单输入 → 回车查词 → 复制 → 粘贴</figcaption></figure>
+      </article>
+      <p class="section-footnote">本轮素材使用输入 / 选图入口；跨应用划词与屏幕框选录制尚待授权验证。<a href="https://github.com/YEMIN11238/Pop/blob/main/docs/demo-notes.md">查看实测范围与环境</a>。快捷键可在设置中修改；如与其他应用冲突，请更换组合。</p>
+    </section>
+
+    <section class="section capabilities" aria-labelledby="capabilities-title">
+      <div class="section-heading"><p class="eyebrow">从内置能力开始</p><h2 id="capabilities-title">先用起来，再接自己的服务。</h2><p>内置能力不需要 Pop 账户或个人云 API Key。云服务与本地模型按需配置。</p></div>
+      <div class="table-scroll" role="region" aria-label="内置与自定义服务对照表" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">能力</th><th scope="col">开始使用</th><th scope="col">运行方式与限制</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Apple 系统翻译</th><td><span class="status ready">无需 API 配置</span></td><td>普通窗口翻译支持 macOS 15+。首次使用某个语言对可能需要联网下载 Apple 语言包；不能统称为完全离线。</td></tr>
+            <tr><th scope="row">Vision OCR</th><td><span class="status ready">无需 API 配置</span></td><td>在本机识别图片文字。截取屏幕需录屏权限；直接选取已有图片无需录屏权限。</td></tr>
+            <tr><th scope="row">ECDICT 英汉词典</th><td><span class="status ready">无需额外下载</span></td><td>词库随包提供，可离线查英文词条。不是整句翻译服务。</td></tr>
+            <tr><th scope="row">自定义云 API</th><td><span class="status configure">需要自行配置</span></td><td>按服务填写地址、模型与密钥。支持 OpenAI 兼容接口及 Gemini、Claude 等原生协议；查询发往所启用的服务，费用由服务商决定。</td></tr>
+            <tr><th scope="row">本地模型</th><td><span class="status configure">需要自行配置</span></td><td>自行安装并运行 Ollama 等服务、下载模型，再配置地址与模型名称。Pop 安装包不包含大模型。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="version-note"><strong>macOS 15 与 26 的区别</strong><p>macOS 15 可使用普通窗口中的 Apple 系统翻译。调用 Apple 系统服务进行<strong>静默翻译、原图翻译</strong>需要 macOS 26+，并需先在普通翻译窗口下载对应语言包；较早系统可配置云翻译服务。这项限制不影响 Vision OCR 和离线词典。</p></aside>
+    </section>
+
+    <section class="section start" id="start" aria-labelledby="start-title">
+      <div class="section-heading"><p class="eyebrow">第一次使用</p><h2 id="start-title">下载之后，先查一个词。</h2><p>无需编译。只想先体验时，可以从手动输入和本地词典开始。</p></div>
+      <ol class="steps">
+        <li><span class="step-marker" aria-hidden="true">1</span><div><h3>下载与安装</h3><p>下载最新 DMG，打开后把 <strong>Pop.app</strong> 拖到 <strong>Applications（应用程序）</strong>。ZIP 用户解压后，同样把应用移入应用程序。</p></div></li>
+        <li><span class="step-marker" aria-hidden="true">2</span><div><h3>从应用程序启动</h3><p>当前发布包使用 ad hoc 签名，没有 Apple Developer ID 签名或公证。若系统拦截，先尝试打开一次，再到「系统设置 → 隐私与安全性」选择 <strong>仍要打开</strong>。无需关闭系统安全保护。</p></div></li>
+        <li><span class="step-marker" aria-hidden="true">3</span><div><h3>按需要授予权限</h3><p><strong>录屏与系统录音</strong>（或「屏幕录制」）用于截取屏幕；<strong>辅助功能</strong>用于跨应用取词和回填。按系统要求重新打开应用。拒绝这些权限后，仍可手动输入、查本地词典、选取已有图片做 OCR。</p></div></li>
+        <li><span class="step-marker" aria-hidden="true">4</span><div><h3>用 ⌥A 完成第一次查词</h3><p>按 <kbd>⌥</kbd><kbd>A</kbd>，输入 <code>apple</code> 并按回车，查看「简明英汉词典」结果，点击复制按钮并粘贴到文稿。若此前关闭过此服务，先在翻译服务设置中启用它。</p></div></li>
+      </ol>
+      <div class="start-links"><a class="text-link" href="https://github.com/YEMIN11238/Pop/blob/main/docs/first-use.md">完整首次使用教程 <span aria-hidden="true">→</span></a><a class="text-link" href="https://github.com/YEMIN11238/Pop/releases/latest">发布说明、安装包与校验文件 <span aria-hidden="true">↗</span></a></div>
+      <p class="section-footnote">更新前请先退出旧版 Pop，再替换应用。签名变化后，系统可能要求重新授予权限。安装包支持 Apple Silicon 与 Intel；Windows、Linux 和 macOS 14 及更早版本不支持。</p>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title"><img src="assets/app-icon.png" width="64" height="64" alt=""><h2 id="closing-title">让下一次查词，随手就能完成。</h2><p>先体验内置词典与 OCR，再按需要配置自己的翻译服务。</p><a class="button primary" href="download.html?format=dmg">下载最新 Pop <span aria-hidden="true">↓</span></a></section>
+  </main>
+
+  <footer class="site-footer">
+    <div><a class="brand" href="./">Pop</a><p>受 Bob 使用方式启发的独立实现，与 Bob 及其开发者无隶属关系；不承诺全面兼容。</p></div>
+    <nav aria-label="项目链接"><a href="https://github.com/YEMIN11238/Pop">源码</a><a href="https://github.com/YEMIN11238/Pop/blob/main/LICENSE">MIT 许可证</a><a href="https://github.com/YEMIN11238/Pop/blob/main/THIRD_PARTY_NOTICES.txt">第三方材料</a><a href="https://github.com/YEMIN11238/Pop/issues">反馈问题</a></nav>
+    <p class="privacy-note">本页无第三方统计脚本。版本与下载信息通过 GitHub 公共 API 获取。</p>
+  </footer>
+</body>
+</html>
