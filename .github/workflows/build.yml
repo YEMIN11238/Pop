@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [macos-15-intel, macos-15-arm64]
+        runner: [macos-15-intel, macos-15]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
@@ -61,12 +61,12 @@ jobs:
           xcrun swift test --scratch-path .build-tests.noindex
 
       - name: Build and verify universal download packages
-        if: matrix.runner == 'macos-15-arm64'
+        if: matrix.runner == 'macos-15'
         shell: bash
         run: bash Scripts/package-release.sh
 
       - name: Start packaged executable on macOS 15
-        if: matrix.runner == 'macos-15-arm64'
+        if: matrix.runner == 'macos-15'
         shell: bash
         run: |
           set -euo pipefail
@@ -77,7 +77,7 @@ jobs:
       # Artifacts are downloadable for review. This workflow deliberately does
       # not publish a GitHub Release and does not claim Developer ID notarization.
       - name: Upload verified release candidates
-        if: matrix.runner == 'macos-15-arm64'
+        if: matrix.runner == 'macos-15'
         uses: actions/upload-artifact@v4
         with:
           name: Pop-universal-downloads
@@ -95,7 +95,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [macos-15-intel, macos-15-arm64]
+        runner: [macos-15-intel, macos-15]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 10
     steps:
