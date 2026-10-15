@@ -145,7 +145,9 @@ STAGED_APPLICATION="$STAGING_DIRECTORY/$APP_NAME"
 CONTENTS="$STAGED_APPLICATION/Contents"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources/Licenses" "$CONTENTS/Frameworks"
 xcrun lipo -create "${BINARIES[@]}" -output "$CONTENTS/MacOS/Pop"
-xcrun lipo -verify_arch "${ARCHITECTURES[@]}" "$CONTENTS/MacOS/Pop"
+for architecture in "${ARCHITECTURES[@]}"; do
+    xcrun lipo "$CONTENTS/MacOS/Pop" -verify_arch "$architecture"
+done
 # Release downloads do not include source paths or DWARF debug information.
 xcrun strip -S "$CONTENTS/MacOS/Pop"
 chmod 755 "$CONTENTS/MacOS/Pop"

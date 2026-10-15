@@ -66,7 +66,7 @@ INFO="$APPLICATION/Contents/Info.plist"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleName' "$INFO")" == "Pop" ]] || { printf 'The supplied app is not Pop.\n' >&2; exit 1; }
 [[ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$INFO")" == "Pop" ]] || { printf 'Unexpected executable name.\n' >&2; exit 1; }
 [[ "$(/usr/libexec/PlistBuddy -c 'Print LSMinimumSystemVersion' "$INFO")" == "15.0" ]] || { printf 'Expected macOS 15.0 deployment minimum.\n' >&2; exit 1; }
-xcrun lipo -verify_arch arm64 x86_64 "$APPLICATION/Contents/MacOS/Pop"
+for architecture in arm64 x86_64; do xcrun lipo "$APPLICATION/Contents/MacOS/Pop" -verify_arch "$architecture"; done
 /usr/bin/codesign --verify --deep --strict "$APPLICATION"
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$INFO")"
 BUILD="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$INFO")"
@@ -101,7 +101,9 @@ INSTALL
 /usr/bin/unzip -tq "$STAGING_DIRECTORY/$ASSET_NAME.zip" >/dev/null
 /usr/bin/ditto -x -k "$STAGING_DIRECTORY/$ASSET_NAME.zip" "$STAGING_DIRECTORY/zip-check"
 /usr/bin/codesign --verify --deep --strict "$STAGING_DIRECTORY/zip-check/Pop.app"
-xcrun lipo -verify_arch arm64 x86_64 "$STAGING_DIRECTORY/zip-check/Pop.app/Contents/MacOS/Pop"
+for architecture in arm64 x86_64; do
+    xcrun lipo "$STAGING_DIRECTORY/zip-check/Pop.app/Contents/MacOS/Pop" -verify_arch "$architecture"
+done
 /usr/bin/hdiutil create -quiet -volname "Pop $VERSION" -srcfolder "$STAGING_DIRECTORY/image" \
     -fs HFS+ -format UDZO -nospotlight "$STAGING_DIRECTORY/$ASSET_NAME.dmg"
 /usr/bin/hdiutil verify -quiet "$STAGING_DIRECTORY/$ASSET_NAME.dmg"
