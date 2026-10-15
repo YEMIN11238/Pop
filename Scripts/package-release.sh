@@ -85,7 +85,7 @@ mkdir -p "$STAGING_DIRECTORY/image" "$STAGING_DIRECTORY/zip-check"
 /usr/bin/ditto "$APPLICATION" "$STAGING_DIRECTORY/image/Pop.app"
 ln -s /Applications "$STAGING_DIRECTORY/image/Applications"
 cat > "$STAGING_DIRECTORY/image/安装说明.txt" <<INSTALL
-Pop $VERSION（构建 $BUILD）
+Pop ${VERSION}（构建 ${BUILD}）
 
 支持 macOS 15 及以上，Apple Silicon 和 Intel Mac。
 将 Pop.app 拖入旁边的 Applications 文件夹，然后从“应用程序”打开 Pop。
