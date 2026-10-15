@@ -1,0 +1,25 @@
+{
+  "repository": "https://github.com/skywind3000/ECDICT",
+  "revision": "bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b",
+  "license": "MIT",
+  "source_url": "https://raw.githubusercontent.com/skywind3000/ECDICT/bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b/ecdict.csv",
+  "source_sha256": {
+    "ecdict.csv": "1a6947e04785db63613a92e14903cdae7954f7e84860b10e68e5c7cbb3f9c3cf",
+    "LICENSE": "f8552dd246f61a4e064569eae6194a01c6b3d63b03bf27c6ca863593c549ed0f"
+  },
+  "source_rows": 770611,
+  "case_insensitive_unique_entries": 770611,
+  "morphology_aliases": 125861,
+  "sqlite_sha256": "71c0326b2b4892e5161abda67fc19d7e2fd1129a0d03f9764582c65d14087dc5",
+  "sqlite_bytes": 65859584,
+  "sqlite_integrity_check": "ok",
+  "fixtures": {
+    "hello": true,
+    "apple": true,
+    "run": true,
+    "running": true,
+    "gave": true
+  },
+  "not_used": "lemma.en.txt has a separate research/educational-use header and is not included or used.",
+  "build": "python3 scripts/build-dictionary.py --download"
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="Pop">
+    <suite name="Pop Suite" code="Yibn" description="Pop 的文本翻译命令。">
+        <command name="translate" code="YibnTrns" description="在 Pop 窗口中显示并翻译给定文字。">
+            <cocoa class="PopTranslateCommand"/>
+            <direct-parameter type="text" description="需要翻译的文字。"/>
+        </command>
+        <command name="request" code="YibnRqst" description="受理翻译请求并返回 JSON 状态，翻译结果随后显示在窗口。">
+            <cocoa class="PopRequestCommand"/>
+            <direct-parameter type="text" description="需要翻译的文字，或包含 action、text、source、target 字段的 JSON 字符串。"/>
+            <result type="text" description="请求受理状态的 JSON 字符串，不是翻译结果。"/>
+        </command>
+    </suite>
+</dictionary>

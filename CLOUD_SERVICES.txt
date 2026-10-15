@@ -1,0 +1,157 @@
+Pop 云端翻译、文字识别与朗读接口
+本文说明当前客户端实现；服务商产品、模型、区域和账户权限以实际配置为准。
+
+AI 翻译接口
+
+在“服务 → 文本翻译 → 添加”选择对应提供商。通用 OpenAI 兼容协议可填写基础地址或完整 /chat/completions、API Key 和任意模型名称；DeepSeek、OpenRouter、Grok、Kimi 等已有可编辑预设。Gemini 与 Claude 使用各自的原生协议；中转商只提供 OpenAI 兼容地址时应选通用兼容预设。
+
+Azure OpenAI 需填资源 Endpoint、Deployment Name、API Key。API Version 预设为 2023-03-15-preview，请按资源实际支持的版本修改。也接受完整部署 URL 及唯一 api-version 参数；完整 URL 中部署名/版本优先于分开的输入。Azure 使用 api-key，不套用 Bearer。模型输入保留，预设 gpt-4.1-mini 不代表你的部署已包含该模型。
+
+千问 qwen-mt- 前缀在通用兼容服务中也会进入专用翻译请求：原文作为 user，translation_options 含 auto 源语言与当前目标语言。豆包提供商可填写推理接入点；非空时优先于模型名称。有效模型以 doubao-seed-translation- 开头时使用 /responses 与 input[].content[].translation_options，其余模型使用 /chat/completions。切换模型会相应停用不参与专用翻译的通用模式/生成选项，保留填写值。
+
+普通 AI 可选翻译、润色、自定义 Prompt。自定义模式分别编辑系统角色和用户指令；$query.detectFromLang、$query.detectToLang 为语言名称，用户模板里的 $query.text 替换原文。旧 {{source}}/{{target}} 仍表示语言码（auto 使用 auto-detect），{{text}} 可用于用户模板。空系统角色不发送 system；空用户模板直接发送原文。实际请求格式在本地测试，不代表所有模型都会遵守提示或输出相同结果。
+
+客户端提供多个自带密钥服务预设，尚未提供完整模型目录或各厂商全部高级参数。模型栏允许手动填写，须使用当前账户或服务器可用的名称。Ollama 使用原生 /api/chat 和 NDJSON 流式，支持思考内容、think 开关、temperature 与 num_predict；旧 Ollama /v1 配置会规范到原生端点。默认地址为 http://localhost:11434，模型需自行安装、启动并填写名称；LM Studio 使用 OpenAI 兼容协议。协议自检使用模拟响应，不能证明所有真实本地模型和网络链路可用。Pop 不提供 Bob 的托管智谱/硅基免费额度；硅基流动需要自有账户凭据。
+
+以下为 OCR / TTS 适配说明。
+
+当前原生媒体目录包含 Google、Microsoft、百度智能云、腾讯云和 Amazon 五家。
+每家均有 OCR 和 TTS 适配器。应用默认使用免费的本机 OCR 与系统朗读；
+新增云端服务保持禁用，需自行开通对应产品、填写密钥并手动启用。
+云端产品可能计费，Pop 不提供云账户、共享密钥或托管额度。
+
+实现状态与验收范围
+
+Sources/Pop/CloudMediaSelfCheck.swift、CloudServiceSelfCheck.swift 和
+OllamaProtocolSelfCheck.swift 包含可运行的协议检查，随 --self-check 执行。
+媒体检查通过 URLProtocol 拦截模拟请求，覆盖请求体、认证、OCR 文字框、异步任务、
+音频字节、地区切换、业务错误、密钥隐藏和取消，不调用真实云 API 或使用用户凭据。
+模拟通过不代表真实账户权限、区域、音色、账单、识别效果或播放设备已经可用；
+启用服务后，应以自己的测试内容核对结果。
+
+五家 OCR 使用不同协议，返回结果统一为文字与归一化文字框；四边形取包围矩形。
+这些文字识别 API 不提供 Pop 本机二维码能力，云 OCR 结果中的二维码列表为空。
+OCR 请求仅接受可解码的单张图片，不接受多页 PDF；多张图片由应用逐张调度。
+输入有本地大小限制，提供商可能另有限额。TTS 为短文本非流式合成，返回音频数据，
+不支持此目录以外的长文本任务、声音克隆或实时语音。朗读语言与音色需匹配。
+
+设置方法
+
+在对应服务列表添加厂商并填写字段，通过列表开关启用，然后保存当前列表草稿。
+截图翻译 OCR 与独立 OCR 使用两个 scope，配置和已开启项相互独立；
+旧配置迁移可暂时引用原凭据账户，编辑保存时按记录处理凭据。
+这两个列表各自单选，朗读列表另行单选。没有额外的“选用服务”选择器；
+保存时不可为空或全部关闭，服务失败会返回错误，不自动轮换其他提供商。
+字段、启停、删除和排序未保存时可撤销，测试连接不自动落盘。
+密钥字段由上层配置存入 macOS Keychain；普通地区/音色选项保存在应用设置中。
+翻译 API 的产品或密钥并不一定能用于媒体 API。
+
+默认系统 OCR 主卡为名称、离线说明和支持语言入口，另有精度、纠错、语言及
+段落整理高级选项。系统 TTS 可按语言选择已安装声音并试听，语速显示 0 至 1.6 倍；
+可用声音和设备效果由当前系统决定。
+
+原生媒体 HTTP 使用统一网络代理配置，代理密码存 Keychain；关闭自定义代理时
+跟随系统网络。插件 HTTP 也已接代理，插件 WebSocket 暂不接自定义代理。
+代理本机测试不代表任何真实云账户、远程代理或音频播放已经可用。
+静默 OCR 提供加载/成功/失败提示与空识别剪贴板保护；截图需要屏幕录制权限，
+跨应用取词及回填还需要辅助功能权限。授权由 macOS 管理。
+
+地区与端点
+
+Microsoft 和 Amazon 的默认区域分别是 eastus 与 us-east-1。修改 Region 后，
+标准区域端点会按新地区生成；AWS 的签名地区同步变化，中国地区采用 .com.cn 域名。
+这只验证端点构造与签名一致性，不保证所选地区实际提供该服务。
+Azure 自定义资源域、私有/代理域、非标准路径与显式查询参数保持用户填写的地址。
+使用自定义端点时，应自行确认地区、路径与密钥对应。地址需完整包含下述 API 路径。
+云服务使用 HTTPS，本机回环服务允许 HTTP。默认网络会话拒绝重定向；Azure Read
+只轮询同源 Operation-Location，不会把资源密钥转发至其他域名。
+
+Google Cloud
+
+OCR 使用 Vision v1 images:annotate / DOCUMENT_TEXT_DETECTION。
+默认地址：https://vision.googleapis.com/v1/images:annotate
+TTS 使用 Cloud Text-to-Speech v1 text:synthesize，输出 MP3。
+默认地址：https://texttospeech.googleapis.com/v1/text:synthesize
+填写 API Key 或 OAuth Access Token 二选一；填写 Token 时优先使用 Token。
+Token 需自行更新。需在对应 Google Cloud 项目开通 API 并配置产品要求的结算和权限。
+OAuth/项目认证方式以官方文档为准，Pop 不自动登录或刷新令牌。
+OCR 可填 languageHints，TTS 可填 voice/speakingRate。
+官方开通与凭据说明：
+https://docs.cloud.google.com/vision/docs/setup
+https://docs.cloud.google.com/text-to-speech/docs/get-started
+https://docs.cloud.google.com/docs/authentication/api-keys
+https://docs.cloud.google.com/text-to-speech/docs/authentication
+
+Microsoft Azure
+
+OCR 使用 Vision Read 3.2：POST 原图，收到 202 后轮询任务。已接受任务的第一次
+查询可立即进行，随后每秒查询，最多四十次；取消会停止本地请求/轮询。
+默认地址：https://eastus.api.cognitive.microsoft.com/vision/v3.2/read/analyze
+填写 Vision 资源密钥，并设置该资源的地区。Read 3.2 是已存在的 API，
+不是新版 Image Analysis 4.0 或 Document Intelligence 接口。
+TTS 使用 Speech REST / SSML，输出 audio-24khz-48kbitrate-mono-mp3。
+默认地址：https://eastus.tts.speech.microsoft.com/cognitiveservices/v1
+填写 Speech 资源密钥及地区，可自填 Neural 音色；未填时按部分常用语言选择默认音色。
+从 Azure Portal 对应资源的“Keys and Endpoint”取得密钥与地址，勿混用资源密钥。
+官方说明：
+https://learn.microsoft.com/en-us/azure/cognitive-services/computer-vision/how-to/call-read-api
+https://learn.microsoft.com/en-us/azure/ai-services/speech-service/rest-text-to-speech
+
+百度智能云
+
+OCR 使用“通用文字识别（高精度含位置版）”。
+默认地址：https://aip.baidubce.com/rest/2.0/ocr/v1/accurate
+TTS 使用“短文本在线合成”，输出 MP3，支持中英文混合并优先中文发音。
+默认地址：https://tsn.baidu.com/text2audio
+两者均填写百度智能云应用的 API Key 与 Secret Key。不要填写百度翻译的 APP ID。
+客户端通过 OAuth POST 获取临时 access_token，再调用媒体 API；不把原始 Secret Key
+放入 URL。TTS 的 tex 依官方示例双重 URL 编码，本地上限为 1024 UTF-8 字节。
+OCR 可设 languageType；TTS 可设 voice（per）、speed（spd）、pitch（pit）。
+官方产品开通、应用和凭据说明：
+https://ai.baidu.com/ai-doc/index/OCR
+https://ai.baidu.com/ai-doc/OCR/tk3h7y2aq
+https://ai.baidu.com/ai-doc/SPEECH/mlbxh7xie
+
+腾讯云
+
+OCR 使用 GeneralBasicOCR，版本 2018-11-19，TC3-HMAC-SHA256 服务域 ocr。
+默认地址：https://ocr.tencentcloudapi.com
+文字框使用原图 Polygon，不把旋转纠正后的 ItemPolygon 用于原图覆盖。
+TTS 使用 TextToVoice，版本 2019-08-23，TC3 服务域 tts，输出 MP3。
+默认地址：https://tts.tencentcloudapi.com
+填写 SecretId 与 SecretKey，可配置 Region。默认 ap-guangzhou。
+TTS 可设 VoiceType 和 speed；未填音色时英文使用 1050，其余使用 1001。
+其他语言需自行选择对应产品支持的音色。每次限制 150 个中文字符或 500 个英文字符。
+需在腾讯云开通对应产品，并让凭据具备 OCR/TTS 权限。
+官方凭据管理与 API：
+https://console.cloud.tencent.com/cam/capi
+https://cloud.tencent.com/document/product/866/33526
+https://cloud.tencent.com/document/api/1073/37995
+
+Amazon Web Services
+
+OCR 使用 Textract DetectDocumentText，AWS SigV4 服务域 textract。
+默认地址：https://textract.us-east-1.amazonaws.com
+TTS 使用 Polly SynthesizeSpeech，SigV4 服务域 polly，输出 MP3。
+默认地址：https://polly.us-east-1.amazonaws.com/v1/speech
+填写 Access Key ID 与 Secret Access Key；使用临时凭据时同时填写 Session Token。
+Region 必须与资源权限和服务可用地区相符。凭据需具备 textract:DetectDocumentText
+或 polly:SynthesizeSpeech 权限。Pop 不读取 AWS 配置目录，不自动刷新临时凭据。
+TTS 可设 VoiceId 与 engine，默认 standard；未填音色时中文使用 Zhiyu，其他使用 Joanna。
+非中文/英文场景请自行选择匹配音色与引擎。同步合成本地上限为 3000 个字符。
+官方入门、凭据与权限说明：
+https://docs.aws.amazon.com/textract/latest/dg/getting-started.html
+https://docs.aws.amazon.com/polly/latest/dg/getting-started.html
+https://docs.aws.amazon.com/polly/latest/dg/security_iam_id-based-policy-examples.html
+
+开发接口
+
+CloudMediaService(session: URLSession? = nil)
+  recognize(imageData: Data, service: ServiceConfig, apiKey: String) async throws -> OCRDocument
+  synthesize(text: String, language: String, service: ServiceConfig, apiKey: String) async throws -> Data
+
+apiKey 接受单个字符串，或 CloudMediaCatalog.secretFields 对应键组成的 JSON 字符串。
+多字段凭据必须使用 JSON，不能用任意分隔符拼接。认证值只存于内存和请求中，
+错误会逐字段隐藏已知密钥；可传播 CancellationError。默认会话不存 cookie/URL 缓存。
+CloudMediaCatalog 提供能力目录、字段、默认选项与端点；本目录暂不列入阿里/火山媒体，
+这两家已有翻译适配器不代表 OCR/TTS 同时可用。

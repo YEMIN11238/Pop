@@ -1,0 +1,69 @@
+name: Build and package macOS
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-arm64]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select a stable Xcode with macOS SDK 26 or later
+        shell: bash
+        run: |
+          set -euo pipefail
+          for candidate in /Applications/Xcode_*.app; do
+            [[ "$candidate" != *beta* && "$candidate" != *Beta* ]] || continue
+            sdk="$(DEVELOPER_DIR="$candidate/Contents/Developer" xcrun --sdk macosx --show-sdk-version 2>/dev/null || true)"
+            if [[ "$sdk" =~ ^[0-9]+\. && "${sdk%%.*}" -ge 26 ]]; then
+              printf 'DEVELOPER_DIR=%s/Contents/Developer\n' "$candidate" >> "$GITHUB_ENV"
+              printf 'Using %s with macOS SDK %s\n' "$candidate" "$sdk"
+              exit 0
+            fi
+          done
+          echo 'No stable Xcode with macOS SDK 26+ is installed on this runner.' >&2
+          exit 1
+
+      - name: Check scripts and run native unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n Scripts/build.sh Scripts/package-release.sh
+          xcrun swift test --scratch-path .build-tests.noindex
+
+      - name: Build and verify universal download packages
+        if: matrix.runner == 'macos-15-arm64'
+        shell: bash
+        run: bash Scripts/package-release.sh
+
+      # Artifacts are downloadable for review. This workflow deliberately does
+      # not publish a GitHub Release and does not claim Developer ID notarization.
+      - name: Upload verified release candidates
+        if: matrix.runner == 'macos-15-arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pop-universal-downloads
+          path: |
+            release.noindex/Pop-*-universal.zip
+            release.noindex/Pop-*-universal.dmg
+            release.noindex/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0

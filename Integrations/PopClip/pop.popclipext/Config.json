@@ -1,0 +1,15 @@
+{
+  "name": "Pop",
+  "identifier": "com.local.pop",
+  "description": "使用 Pop 翻译选中文字。",
+  "icon": "preserve-color file:icon.png",
+  "macosVersion": "15.0",
+  "shellScriptFile": "translate.sh",
+  "interpreter": "/bin/zsh",
+  "shellMode": "none",
+  "requirements": [
+    "text"
+  ],
+  "after": "show-status",
+  "shellScriptRationale": "Pass selected text as an argv value to macOS JavaScript for Automation and the local com.local.pop request command."
+}

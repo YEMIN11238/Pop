@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Pop</string>
+	<key>identifier</key>
+	<string>com.local.pop</string>
+	<key>description</key>
+	<string>使用 Pop 翻译选中文字。</string>
+	<key>icon</key>
+	<string>preserve-color file:icon.png</string>
+	<key>macosVersion</key>
+	<string>15.0</string>
+	<key>shellScriptFile</key>
+	<string>translate.sh</string>
+	<key>interpreter</key>
+	<string>/bin/zsh</string>
+	<key>shellMode</key>
+	<string>none</string>
+	<key>requirements</key>
+	<array>
+		<string>text</string>
+	</array>
+	<key>after</key>
+	<string>show-status</string>
+	<key>shellScriptRationale</key>
+	<string>Pass selected text as an argv value to macOS JavaScript for Automation and the local com.local.pop request command.</string>
+</dict>
+</plist>

@@ -1,0 +1,61 @@
+Pop 第三方材料说明
+
+本应用为独立实现。本公开仓库不包含 Bob 应用、反编译资料、提取的界面图形、专有 JavaScript 或专有词库。应用名称为 Pop；Resources/AppIcon.* 及集成包的图标由用户提供。本说明记录材料来源，不代替各材料自身的许可。
+
+ECDICT 离线英汉词库
+项目：https://github.com/skywind3000/ECDICT
+固定 revision：bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b
+数据：ecdict.csv，770,611 条词条；本项目生成 SQLite 和词形别名索引。
+许可证：MIT，完整原文 Resources/Licenses/ECDICT-MIT.txt。
+来源、输入哈希、数据库哈希和完整性检查：Resources/Dictionaries/ECDICT-provenance.json。
+未使用带有独立研究/教育用途说明的 lemma.en.txt。词库不包含 Bob 专有数据。
+
+CryptoJS 4.2.0
+项目：https://github.com/brix/crypto-js
+用途：公开插件 require('crypto-js') 兼容；官方源码嵌入 CompiledCryptoJS.swift。
+许可证：MIT，完整原文 Licenses/CryptoJS-MIT.txt。
+
+Markdown/数学/图表显示依赖
+静态文件在 Resources/Renderer/，加载本地打包文件，不要求从 CDN 下载脚本。包版本、npm URL 与 integrity 记录在 Resources/Renderer/dependencies.json。
+
+marked 18.1.1
+项目：https://github.com/markedjs/marked
+许可证：MIT，完整原文 Licenses/marked-LICENSE.txt。
+
+dompurify 3.4.17（DOMPurify）
+项目：https://github.com/cure53/DOMPurify
+上游许可选择为 MPL-2.0 OR Apache-2.0；本分发附 Apache-2.0 许可文本。
+许可证原文：Licenses/dompurify-LICENSE.txt。
+
+KaTeX 0.19.0（代码与自动渲染脚本）
+项目：https://github.com/KaTeX/KaTeX
+代码许可证：MIT，完整原文 Licenses/katex-LICENSE.txt。
+随包 KaTeX 字体单独适用 SIL Open Font License 1.1；官方许可原文
+Licenses/KaTeX-Fonts-OFL-1.1.txt，字体 name table 中版权、Reserved Font Name
+与许可 URL 转录在 Licenses/KaTeX-Fonts-copyright.txt。字体未作重命名或修改。
+字体上游：https://github.com/KaTeX/katex-fonts
+
+Mermaid 12.2.0
+项目：https://github.com/mermaid-js/mermaid
+许可证：MIT，完整原文 Licenses/mermaid-LICENSE.txt。
+Resources/Renderer/mermaid.js 是上游打包分发文件，保留文件末尾的
+“Bundled license information”版权声明；原样转录和文件 SHA-256 见
+Licenses/Mermaid-Bundled-NOTICES.txt。该声明列出内嵌 DOMPurify 3.4.12、
+Lodash 4.18.1，以及 Cytoscape 中引用的 Promises/A+、jQuery events、
+Bezier 和 Framer 衍生片段。内嵌 DOMPurify 与上面单独打包的 3.4.17
+是两个不同版本。转录仅覆盖上游明确保留的版权块，不宣称是完整依赖清单；
+适用许可和上游链接以该版权块及对应许可证为准。
+
+@highlightjs/cdn-assets 11.12.0（highlight.js 分发文件与配套主题）
+项目：https://github.com/highlightjs/cdn-release
+许可证：BSD-3-Clause，完整原文 Licenses/highlightjs_cdn-assets-LICENSE.txt。
+
+系统依赖与外部服务
+Apple Translation、Vision、AVFoundation、JavaScriptCore、Network、Security、WebKit、DictionaryServices 与系统 SQLite 通过 macOS 框架/库使用，不随本项目重新分发系统框架。
+云服务适配和 PopClip/Raycast/Alfred 集成由本项目独立实现，未附第三方宿主应用或账户凭据。服务商名称仅用于标明接口；使用对应服务仍需自行开通、配置并遵守其服务条款。官方协议来源见 CLOUD_SERVICES.txt 和 Integrations/README.txt。
+
+原始版权声明与完整授权条件以相应许可证文件为准；本说明不替代许可原文。
+
+界面与名称
+公开版本使用系统图标作为界面图形回退，不分发从 Bob 提取的图形。
+Bob、服务商及第三方工具名称仅用于说明兼容目标或接口，不表示授权、关联或背书。
