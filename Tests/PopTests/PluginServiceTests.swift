@@ -55,7 +55,7 @@ final class PluginServiceTests: XCTestCase {
         let (base, host, plugin) = try fixture(source: source, modules: ["lib/helper.js": "const p = require('../prefix.json'); exports.prefix = (text, suffix) => p.value + text + ':' + suffix;", "prefix.json": "{\"value\":\"translated:\"}", "defaults.json": "{\"value\":\"json\"}"], log: { _, _ in callbackOnMain = Thread.isMainThread })
         defer { try? FileManager.default.removeItem(at: base) }
         let output = try await host.translate(TranslationRequest(text: "hello", source: "auto", target: "zh-Hans"), service: config(plugin, options: ["suffix": "override"]))
-        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "pop"
+        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Pop"
         XCTAssertEqual(output.text, "translated:hello:override\njson:Fixture:" + appName)
         XCTAssertEqual(output.detectedSource, "en")
         XCTAssertTrue(callbackOnMain)
@@ -120,11 +120,14 @@ final class PluginServiceTests: XCTestCase {
 
     @MainActor
     func testCancellationReleasesAnOutstandingTranslation() async throws {
-        let source = "function supportLanguages(){return ['en','zh-Hans'];} function translate(){}"
-        let (base, host, plugin) = try fixture(source: source, timeout: 2, executionMode: .inProcess)
+        let started = expectation(description: "JavaScript translation is awaiting completion")
+        let source = "function supportLanguages(){return ['en','zh-Hans'];} function translate(){$log.info('translation started');}"
+        let (base, host, plugin) = try fixture(source: source, timeout: 2, log: { _, message in
+            if message == "translation started" { started.fulfill() }
+        })
         defer { try? FileManager.default.removeItem(at: base) }
         let task = Task { try await host.translate(TranslationRequest(text: "hello", source: "en", target: "zh-Hans"), service: config(plugin)) }
-        try await Task.sleep(nanoseconds: 10_000_000)
+        await fulfillment(of: [started], timeout: 1)
         task.cancel()
         do { _ = try await task.value; XCTFail("Cancelled translations must fail") }
         catch { XCTAssertTrue(error is CancellationError) }

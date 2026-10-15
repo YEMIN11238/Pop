@@ -66,9 +66,19 @@ final class HTTPTranslationServiceTests: XCTestCase {
             let service = ServiceConfig(name: "Test", kind: .openAI, endpoint: endpoint, model: "installed-model")
             XCTAssertNil(try sut.buildRequest(input, service: service, apiKey: "").value(forHTTPHeaderField: "Authorization"))
         }
-        let remote = try sut.buildRequest(input, service: ServiceConfig(name: "Test", kind: .openAI), apiKey: "")
-        XCTAssertEqual(try jsonBody(remote)["model"] as? String, "gpt-4.1-mini")
-        XCTAssertThrowsError(try sut.buildRequest(input, service: ServiceConfig(name: "Local", kind: .openAI, endpoint: "http://localhost:11434"), apiKey: ""))
+    }
+
+    func testOpenAIRequiresAnExplicitModelForRemoteAndLocalServers() {
+        for endpoint in ["", "https://private.example/v1", "http://localhost:11434"] {
+            for model in ["", " \n\t"] {
+                let service = ServiceConfig(name: "Missing model", kind: .openAI, endpoint: endpoint, model: model)
+                XCTAssertThrowsError(try sut.buildRequest(input, service: service, apiKey: "")) { error in
+                    guard case .configuration = error as? HTTPTranslationError else {
+                        return XCTFail("Expected model configuration error, got \(error)")
+                    }
+                }
+            }
+        }
     }
 
     func testDeepLRequestMapsSourceAndTargetVariants() throws {
@@ -105,7 +115,7 @@ final class HTTPTranslationServiceTests: XCTestCase {
             XCTAssertEqual(request.url?.path, "/v1/chat/completions")
             return (200, Data(#"{"choices":[{"message":{"content":"  你好\n\n世界  "}}]}"#.utf8))
         }
-        let output = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI), apiKey: "")
+        let output = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI, model: "fixture-model"), apiKey: "")
         XCTAssertEqual(output.text, "你好\n\n世界")
     }
 
@@ -132,7 +142,7 @@ final class HTTPTranslationServiceTests: XCTestCase {
             (401, Data(#"{"error":{"message":"Invalid token test-key"}}"#.utf8))
         }
         do {
-            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI), apiKey: "test-key")
+            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI, model: "fixture-model"), apiKey: "test-key")
             XCTFail("Expected authentication error")
         } catch {
             XCTAssertTrue(error.localizedDescription.contains("401"))
@@ -144,14 +154,14 @@ final class HTTPTranslationServiceTests: XCTestCase {
     func testMalformedSuccessAndTimeoutHaveExplicitErrors() async {
         TranslationMockURLProtocol.setHandler { _ in (200, Data(#"{"choices":[]}"#.utf8)) }
         do {
-            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI), apiKey: "")
+            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI, model: "fixture-model"), apiKey: "")
             XCTFail("Expected malformed-response error")
         } catch {
             guard case .invalidResponse = error as? HTTPTranslationError else { return XCTFail("Wrong error: \(error)") }
         }
         TranslationMockURLProtocol.setHandler { _ in throw URLError(.timedOut) }
         do {
-            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI), apiKey: "")
+            _ = try await sut.translate(input, service: ServiceConfig(name: "Test", kind: .openAI, model: "fixture-model"), apiKey: "")
             XCTFail("Expected timeout error")
         } catch {
             XCTAssertEqual(error as? HTTPTranslationError, .timedOut)
