@@ -9,7 +9,7 @@
   <meta property="og:title" content="Pop · macOS 划词翻译与截图 OCR">
   <meta property="og:description" content="在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。">
   <meta property="og:url" content="https://yemin11238.github.io/Pop/">
-  <meta property="og:image" content="https://yemin11238.github.io/Pop/assets/input-translation.png">
+  <meta property="og:image" content="https://yemin11238.github.io/Pop/assets/selection.png">
   <title>Pop · macOS 划词翻译与截图 OCR</title>
   <link rel="icon" href="assets/app-icon.png" type="image/png">
   <link rel="stylesheet" href="styles.css">
@@ -33,13 +33,13 @@
       <p class="intro">在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。</p>
 
       <figure class="hero-demo">
-        <div class="media-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>本地词典 · 从查询到复制粘贴</span><span class="media-label">真实操作关键步骤回放</span></div>
-        <a class="demo-full-size" href="assets/demo.gif" aria-label="打开完整尺寸的本地词典操作回放">
-          <img class="demo-motion" src="assets/demo.gif" alt="本地词典真实操作关键步骤回放：从窗口菜单新建输入窗口，输入 apple 并按回车，查看词典结果，点击复制，再粘贴到文本编辑。" fetchpriority="high">
-          <img class="demo-still" src="assets/input-translation.png" alt="暂停时显示的静态截图：Pop 手动输入英文后的 Apple 系统翻译结果。">
+        <div class="media-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>划词翻译 · 截图 OCR · 本地词典</span><span class="media-label">真实操作关键步骤回放</span></div>
+        <a class="demo-full-size" href="assets/demo.gif" aria-label="打开完整尺寸的三个场景操作回放">
+          <img class="demo-motion" src="assets/demo.gif" alt="三个场景的真实操作关键步骤回放：快捷键划词翻译、点击按钮框选屏幕 OCR、菜单输入查词，以及各自的复制粘贴结果。" fetchpriority="high">
+          <img class="demo-still" src="assets/selection.png" alt="暂停时显示的静态截图：Pop 通过快捷键取词后的 Apple 系统翻译结果。">
         </a>
         <button class="motion-toggle" type="button" data-motion-toggle aria-pressed="false" hidden>暂停动图</button>
-        <figcaption>真实操作关键步骤回放：菜单输入 → 回车查词 → 复制 → 粘贴。<a href="assets/demo.gif">查看清晰原图 ↗</a></figcaption>
+        <figcaption>真实操作关键步骤回放：触发操作 → 查看结果 → 复制粘贴。<a href="assets/demo.gif">查看清晰原图 ↗</a></figcaption>
       </figure>
 
       <div class="download-actions" id="download">
@@ -54,20 +54,20 @@
       <div class="section-heading"><p class="eyebrow">三个日常场景</p><h2 id="scenes-title">把文字接到下一步。</h2><p>留在正在阅读的内容附近，完成翻译、识别与查词。</p></div>
 
       <article class="scene-card">
-        <div class="scene-copy"><span class="scene-number">01 / 阅读翻译</span><h3>看到不懂的句子，带进 Pop 翻译。</h3><p>输入或粘贴原文，查看 Apple 系统翻译结果，再复制到需要的地方。默认划词快捷键为 <kbd>⌥</kbd><kbd>D</kbd>，用于从其他应用取词。</p><p class="scene-detail">本次截图使用手动输入入口，无个人云 API Key。跨应用划词需辅助功能权限，本轮尚未完成实录。</p></div>
-        <figure><a href="assets/input-translation.png" aria-label="查看完整的手动输入翻译截图"><img src="assets/input-translation.png" alt="手动输入翻译实测截图：Pop 显示测试英文原文与 Apple 系统英中翻译结果。" loading="lazy"></a><figcaption>本次展示：手动输入 → Apple 系统英中翻译</figcaption></figure>
+        <div class="scene-copy"><span class="scene-number">01 / 阅读翻译</span><h3>选中一句话，按 ⌥D 查看翻译。</h3><p>在其他应用选中词句，按 <kbd>⌥</kbd><kbd>D</kbd>，查看 Apple 系统翻译结果，再复制到需要的地方。也支持手动输入或粘贴原文。</p><p class="scene-detail">已在文本编辑中实际按 ⌥D，验证原文、系统译文及复制粘贴一致。跨应用取词需辅助功能权限，无需个人云 API Key。</p></div>
+        <figure><a href="assets/selection.png" aria-label="查看完整的划词翻译截图"><img src="assets/selection.png" alt="真实划词翻译截图：在文本编辑选中英文并按 ⌥D 后，Pop 显示原文与 Apple 系统英中译文。" loading="lazy"></a><figcaption>选中文字 → ⌥D → 系统翻译 → 复制粘贴</figcaption></figure>
       </article>
 
       <article class="scene-card">
-        <div class="scene-copy"><span class="scene-number">02 / 图片文字</span><h3>图片里的字，也能变成文本。</h3><p>选择一张已有图片，Vision 在本机识别文字，结果可编辑、复制。截图 OCR 的默认快捷键为 <kbd>⌥</kbd><kbd>⇧</kbd><kbd>S</kbd>。</p><p class="scene-detail">本次展示选图 OCR，无需录屏权限。屏幕框选需要录屏权限，本轮尚未完成实录。</p></div>
-        <figure><a href="assets/file-ocr.png" aria-label="查看完整的选图 OCR 截图"><img src="assets/file-ocr.png" alt="选图 OCR 实测截图：Pop 通过 Vision 识别测试图片文字并显示结果。" loading="lazy"></a><figcaption>本次展示：选图 OCR → Vision → 复制</figcaption></figure>
+        <div class="scene-copy"><span class="scene-number">02 / 图片文字</span><h3>图片里的字，也能变成文本。</h3><p>框选屏幕上的文字，Vision 在本机识别，结果可编辑、复制。也可以选择已有图片。截图 OCR 的默认快捷键为 <kbd>⌥</kbd><kbd>⇧</kbd><kbd>S</kbd>。</p><p class="scene-detail">本次通过“截图 OCR”按钮触发，实际框选中英文并验证复制粘贴。屏幕框选需要录屏权限；选取已有图片无需此权限。</p></div>
+        <figure><a href="assets/screen-ocr.png" aria-label="查看完整的截图 OCR 界面"><img src="assets/screen-ocr.png" alt="屏幕框选 OCR 实测截图：左侧是框选的中英文测试文字，右侧是 Vision 识别后的可复制文字。" loading="lazy"></a><figcaption>点击截图 OCR → 框选文字 → Vision → 复制粘贴</figcaption></figure>
       </article>
 
       <article class="scene-card">
         <div class="scene-copy"><span class="scene-number">03 / 本地词典</span><h3>查一个词，不必先配置云服务。</h3><p>从菜单打开输入窗口，输入英文单词并按回车。随包 ECDICT 英汉词典提供本地释义，结果可以复制。输入翻译的默认快捷键为 <kbd>⌥</kbd><kbd>A</kbd>。</p><p class="scene-detail">本次从窗口菜单进入并完成复制粘贴。词库随包提供，可离线查英文词条，不承担整句翻译。</p></div>
         <figure><a href="assets/dictionary.png" aria-label="查看完整的本地词典截图"><img src="assets/dictionary.png" alt="本地词典实测截图：通过菜单输入 apple 后，Pop 显示本地英汉释义。" loading="lazy"></a><figcaption>菜单输入 → 回车查词 → 复制 → 粘贴</figcaption></figure>
       </article>
-      <p class="section-footnote">本轮素材使用输入 / 选图入口；跨应用划词与屏幕框选录制尚待授权验证。<a href="https://github.com/YEMIN11238/Pop/blob/main/docs/demo-notes.md">查看实测范围与环境</a>。快捷键可在设置中修改；如与其他应用冲突，请更换组合。</p>
+      <p class="section-footnote">素材来自正式发布包，均完成结果与复制粘贴验证。动图是实际操作的关键步骤回放，截图 OCR 采用按钮入口。<a href="https://github.com/YEMIN11238/Pop/blob/main/docs/demo-notes.md">查看实测范围与环境</a>。快捷键可在设置中修改；如与其他应用冲突，请更换组合。</p>
     </section>
 
     <section class="section capabilities" aria-labelledby="capabilities-title">

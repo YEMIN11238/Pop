@@ -2,7 +2,7 @@
 
 在不同应用中快速取词、翻译和识别图片文字，支持本地词典及自定义 AI 服务。
 
-![Pop 本地词典真实操作关键步骤回放：菜单输入、回车查询、复制并粘贴](docs/assets/demo.gif)
+![Pop 真实操作关键步骤回放：划词翻译、屏幕框选 OCR、本地词典查询与复制粘贴](docs/assets/demo.gif)
 
 **[⬇ 下载 Pop for macOS · DMG](https://yemin11238.github.io/Pop/download.html?format=dmg)**　[ZIP 下载](https://yemin11238.github.io/Pop/download.html?format=zip) · [最新 Release](https://github.com/YEMIN11238/Pop/releases/latest) · [产品介绍](https://yemin11238.github.io/Pop/)
 
@@ -12,21 +12,21 @@
 
 ## 三个常用场景
 
-### 阅读外文：划词或手动输入翻译
+### 阅读外文：选中词句，按 ⌥D
 
 在其他应用中选中词句，按 `⌥D` 查看翻译，然后复制结果。支持的可编辑输入框还可使用回填按钮；取词与回填需要辅助功能权限。
 
-![Pop 手动输入翻译：实际的系统英中翻译结果](docs/assets/input-translation.png)
+![Pop 划词翻译实测：从 TextEdit 选中英文并按 ⌥D 后，显示原文与系统英中翻译结果](docs/assets/selection.png)
 
-本图展示手动输入后的系统英中翻译结果；不是跨应用划词触发的录屏。
+本次实测在 TextEdit 中选中 `Small steps make a big difference.`，由用户按下 `⌥D`。Pop 正确取得原文，系统翻译返回“小小的步骤会带来巨大的变化。”；点击复制后，在 TextEdit 粘贴的内容一致。
 
 ### 提取图片文字：截图或选图 OCR
 
-按 `⌥⇧S` 框选包含文字的区域，在 OCR 窗口检查、编辑并复制识别结果。默认使用本机 Apple Vision，无需个人云 API Key；屏幕框选需要录屏权限。也可以从菜单栏选择「选图 OCR…」读取本地图片。
+在 OCR 窗口点击「截图 OCR」，拖动框选包含文字的区域，检查、编辑并复制识别结果。默认使用本机 Apple Vision，无需个人云 API Key；屏幕框选需要录屏权限。也可以从菜单栏选择「选图 OCR…」读取本地图片。
 
-![Pop 选图 OCR：实际图片与可复制的 Vision 识别结果](docs/assets/file-ocr.png)
+![Pop 屏幕框选 OCR 实测：Vision 识别 TextEdit 中的中英测试文字并显示可复制结果](docs/assets/screen-ocr.png)
 
-本图使用「选图 OCR」入口，识别及复制粘贴已实测；屏幕框选入口还需完成本轮授权验证。
+本次通过「截图 OCR」按钮进入真实屏幕框选，识别 TextEdit 中的中英测试文字，复制后粘贴内容一致。截图 OCR 的默认快捷键为 `⌥⇧S`；本轮未验证该组合键的实际按键触发。
 
 ### 查单词：按 ⌥A，输入 apple
 
@@ -34,7 +34,7 @@
 
 ![Pop 本地词典：实际单词释义与复制操作](docs/assets/dictionary.png)
 
-动图使用「窗口 → 新翻译窗口」进入，记录真实查询与复制粘贴的关键步骤。默认 `⌥A` 可打开输入窗口；本轮未把自动化按键当作快捷键验证。参见 [演示环境与验证范围](docs/demo-notes.md)。
+本地词典场景使用「窗口 → 新翻译窗口」进入，查询与复制粘贴已实测。默认 `⌥A` 可打开输入窗口；本轮未验证该组合键的实际按键触发。顶部动图组合了三个场景的真实操作关键步骤，是逐步截取的画面回放，并非连续录屏。参见 [演示环境与验证范围](docs/demo-notes.md)。
 
 ## 下载安装与第一次使用
 
