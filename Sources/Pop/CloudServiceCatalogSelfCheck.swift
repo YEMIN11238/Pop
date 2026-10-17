@@ -118,9 +118,10 @@ enum CloudServiceCatalogSelfCheck {
         checks.append("豆包思考使用四项中文枚举下拉，旧空值兼容默认状态")
 
         let extensions = CloudServiceCatalog.extensionPresets
-        guard extensions.contains(where: { $0.id == "siliconflow" && $0.kind == .openAI && $0.title.contains("自有密钥") }),
+        guard extensions.map(\.id) == ["zhipu", "siliconflow"],
+              extensions.allSatisfy({ $0.kind == .openAI && !$0.model.isEmpty }),
               extensions.allSatisfy({ !Set(chinese.map(\.id)).contains($0.id) }) else { throw PopError.message("自有接口扩展与参考托管服务发生混淆") }
-        checks.append("自有密钥扩展单列，未混入 30 项或冒充托管免费额度")
+        checks.append("智谱和硅基流动提供可编辑的自有密钥模型预设，未混入 30 项或冒充托管免费额度")
         return checks
     }
 }

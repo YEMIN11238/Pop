@@ -232,15 +232,21 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(selectedPage.title).font(.system(size: 16, weight: .semibold)).foregroundStyle(SettingsPalette.header)
                         if selectedPage == .translationServices || selectedPage == .ocrServices {
-                            Text(selectedPage == .ocrServices ? "添加和管理识别服务，启用的服务用于 OCR。" : "在这里管理翻译服务；启用后即可用于查询。")
+                            Text(selectedPage == .ocrServices ? "识别功能的服务配置，下方开启的服务将用于 OCR。" : "翻译功能的核心服务支持配置，下方开启的服务将被使用。")
                                 .font(.system(size: 11)).foregroundStyle(.secondary)
                         }
                     }.offset(y: 3)
                     Spacer()
                     if selectedPage == .translationServices || selectedPage == .ocrServices || selectedPage == .plugins {
                         Button {
-                            if let url = URL(string: "https://github.com/YEMIN11238/Pop#主要功能") { NSWorkspace.shared.open(url) }
-                        } label: { Text("使用教程").font(.system(size: 12)).frame(width: 76, height: 24).background(SettingsPalette.sidebar, in: RoundedRectangle(cornerRadius: 6)) }
+                            if let url = URL(string: selectedPage == .plugins ? "https://github.com/YEMIN11238/Pop#主要功能" : "https://github.com/YEMIN11238/Pop/blob/main/CLOUD_SERVICES.txt") { NSWorkspace.shared.open(url) }
+                        } label: {
+                            if selectedPage == .plugins {
+                                Text("使用教程").font(.system(size: 12)).frame(width: 76, height: 24).background(SettingsPalette.sidebar, in: RoundedRectangle(cornerRadius: 6))
+                            } else {
+                                Text("使用教程").font(.system(size: 12)).frame(width: 76, height: 35).background(SettingsPalette.serviceControl, in: Capsule()).overlay(Capsule().stroke(.primary.opacity(0.08), lineWidth: 1))
+                            }
+                        }
                             .buttonStyle(.plain).bobTooltip("查看 Pop 项目的功能介绍与配置说明。")
                     }
                 }.padding(.horizontal, 20).frame(height: selectedPage == .translationServices || selectedPage == .ocrServices || selectedPage == .plugins ? 52 : 48)
@@ -251,7 +257,7 @@ struct SettingsView: View {
                     Text(notice).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 26).padding(.vertical, 10)
                 }
-            }.background(SettingsPalette.page)
+            }.background(selectedPage == .translationServices || selectedPage == .ocrServices ? SettingsPalette.servicePage : SettingsPalette.page)
         }
         .frame(minWidth: 820, minHeight: 620)
         .ignoresSafeArea(.container, edges: .top)
@@ -623,12 +629,19 @@ struct SettingsView: View {
                 HStack(spacing: 0) {
                     ForEach([("translate", "文本翻译"), ("ocr", "文本识别"), ("tts", "语音合成")], id: \.0) { category, title in
                         Button { chooseServiceCategory(category) } label: {
-                            Text(title).font(.system(size: 12)).frame(width: 100, height: 24)
+                            Text(title).font(.system(size: 13, weight: .medium)).frame(width: 100, height: 24)
                                 .foregroundStyle(serviceCategory == category ? Color.white : Color.primary)
-                                .background(serviceCategory == category ? Color.accentColor : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                                .background(serviceCategory == category ? Color.accentColor : Color.clear, in: Capsule())
+                                .overlay(alignment: .trailing) {
+                                    if category != "tts", category != serviceCategory,
+                                       !(category == "translate" && serviceCategory == "ocr"),
+                                       !(category == "ocr" && serviceCategory == "tts") {
+                                        Rectangle().fill(.secondary.opacity(0.45)).frame(width: 1, height: 14)
+                                    }
+                                }
                         }.buttonStyle(.plain)
                     }
-                }.background(SettingsPalette.card, in: RoundedRectangle(cornerRadius: 6)).padding(.bottom, 25)
+                }.background(SettingsPalette.serviceControl, in: Capsule()).padding(.bottom, 25)
             }
             HStack(spacing: 20) {
                 VStack(spacing: 0) {
@@ -639,19 +652,25 @@ struct SettingsView: View {
                                 HStack(spacing: 7) {
                                     Button { selectedServiceID = service.id } label: {
                                         HStack(spacing: 9) {
-                                            UIReferenceIcon(name: UIReferenceAssets.serviceName(service)).frame(width: 16, height: 16)
+                                            ServiceSettingsIcon(service: service).frame(width: 16, height: 16)
                                             Text(editing.wrappedValue.service.name).font(.system(size: 13)).lineLimit(1)
                                             Spacer(minLength: 0)
                                         }.frame(maxWidth: .infinity, alignment: .leading)
                                     }.buttonStyle(.plain)
-                                    if service.kind == .apple || service.kind == .dictionary { Text("内置").font(.system(size: 9)).foregroundStyle(.teal) }
+                                    if service.kind == .apple || service.kind == .dictionary {
+                                        Text("内置").font(.system(size: 9, weight: .medium)).foregroundStyle(.white)
+                                            .frame(width: 30, height: 16).background(Color.teal, in: Capsule())
+                                    } else if CloudServiceCatalog.requiresPersonalKey(for: service) {
+                                        Text("预设").font(.system(size: 9, weight: .medium)).foregroundStyle(.white)
+                                            .frame(width: 30, height: 16).background(Color.teal, in: Capsule())
+                                    }
                                     Toggle("启用", isOn: Binding(get: { editing.wrappedValue.service.enabled }, set: { value in
                                         selectedServiceID = service.id
                                         if capability != "translate" { stageSingleSelection(service.id, enabled: value, capability: capability, scope: scope) }
                                         else { var draft = editing.wrappedValue; draft.service.enabled = value; editing.wrappedValue = draft }
                                     })).labelsHidden().toggleStyle(BobSettingsSwitchStyle(label: "启用" + editing.wrappedValue.service.name))
                                 }.padding(.horizontal, 10).frame(height: 44)
-                                    .background(selected?.id == service.id ? Color(nsColor: NSColor(srgbRed: 221.0/255, green: 221.0/255, blue: 221.0/255, alpha: 1)) : Color.clear)
+                                    .background(selected?.id == service.id ? SettingsPalette.serviceSelection : Color.clear)
                                     .contentShape(Rectangle())
                                     .draggable(service.id.uuidString)
                                     .dropDestination(for: String.self) { items, _ in
@@ -662,7 +681,7 @@ struct SettingsView: View {
                             if services.isEmpty { Text("点击下方 + 添加服务").font(.system(size: 12)).foregroundStyle(.secondary).padding(20) }
                         }
                     }
-                }.frame(width: 253).background(SettingsPalette.card, in: RoundedRectangle(cornerRadius: 12)).clipShape(RoundedRectangle(cornerRadius: 12))
+                }.frame(width: 253).background(SettingsPalette.serviceCard, in: RoundedRectangle(cornerRadius: 12)).clipShape(RoundedRectangle(cornerRadius: 12))
                 Group {
                     if let selected {
                         ServiceDraftEditor(edit: serviceEditBinding(selected), state: state, plugins: plugins).id(selected.id)
@@ -674,7 +693,7 @@ struct SettingsView: View {
                             Spacer()
                         }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(SettingsPalette.card, in: RoundedRectangle(cornerRadius: 12))
+                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(SettingsPalette.serviceCard, in: RoundedRectangle(cornerRadius: 12))
             }.frame(maxHeight: .infinity)
             HStack(spacing: 10) {
                 HStack(spacing: 0) {

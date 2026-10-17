@@ -19,10 +19,17 @@ struct AddServicePicker: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     group("内置") {
-                        tile(capability == "ocr" ? "系统文字识别" : capability == "tts" ? "系统朗读" : "系统翻译", icon: "character.bubble", tint: .black, asset: providerAsset(.apple)) { onChoose(.system) }
                         if capability == "translate" {
-                            tile("简明英汉词典", icon: "character.book.closed", tint: .blue, asset: "service_dict") { onChoose(.dictionary) }
+                            ForEach(CloudServiceCatalog.builtInAIPresets) { preset in presetTile(preset) }
                         }
+                        tile(capability == "ocr" ? "系统文字识别" : capability == "tts" ? "系统朗读" : "系统翻译", icon: "character.bubble", tint: .black, asset: providerAsset(.apple), service: capability == "translate" ? .system : nil) { onChoose(.system) }
+                        if capability == "translate" {
+                            tile("简明英汉词典", icon: "character.book.closed", tint: .blue, asset: "service_dict", service: .dictionary) { onChoose(.dictionary) }
+                        }
+                    }
+                    if capability == "translate" {
+                        Text("智谱与硅基流动内置的是接口和模型配置，使用时需填写你自己的 API Key。")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     group("自带密钥") {
                         if capability == "translate" {
@@ -32,13 +39,6 @@ struct AddServicePicker: View {
                         } else {
                             ForEach(providers) { kind in
                                 tile(providerName(kind), icon: providerIcon(kind), tint: providerColor(kind), asset: providerAsset(kind)) { onChoose(.provider(kind)) }
-                            }
-                        }
-                    }
-                    if capability == "translate" && !CloudServiceCatalog.extensionPresets.isEmpty {
-                        group("自有接口扩展（使用自己的密钥和额度）") {
-                            ForEach(CloudServiceCatalog.extensionPresets) { preset in
-                                tile(preset.title, icon: "sparkles", tint: .indigo, asset: UIReferenceAssets.serviceName(preset)) { onChoose(.preset(preset)) }
                             }
                         }
                     }
@@ -64,11 +64,16 @@ struct AddServicePicker: View {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 12, content: content)
         }
     }
-    private func tile(_ title: String, icon: String, tint: Color, asset: String? = nil, action: @escaping () -> Void) -> some View {
+    private func presetTile(_ preset: CloudServicePreset) -> some View {
+        let service = CloudServiceCatalog.applying(preset, to: ServiceConfig(name: preset.title, kind: preset.kind))
+        return tile(preset.title, icon: "sparkles", tint: .indigo, service: service) { onChoose(.preset(preset)) }
+    }
+    private func tile(_ title: String, icon: String, tint: Color, asset: String? = nil, service: ServiceConfig? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Group {
-                    if let asset { UIReferenceIcon(name: asset, fallback: icon) }
+                    if let service { ServiceSettingsIcon(service: service) }
+                    else if let asset { UIReferenceIcon(name: asset, fallback: icon) }
                     else { Image(systemName: icon).font(.system(size: 16, weight: .medium)).foregroundStyle(tint) }
                 }.frame(width: 24, height: 24).background(.background, in: RoundedRectangle(cornerRadius: 6))
                 Text(title).font(.system(size: 13)).foregroundStyle(.primary).lineLimit(1)

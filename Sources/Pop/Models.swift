@@ -62,6 +62,15 @@ struct ServiceConfig: Codable, Identifiable, Equatable {
     }
     static var system: ServiceConfig { ServiceConfig(name: "系统翻译", kind: .apple) }
     static var dictionary: ServiceConfig { ServiceConfig(name: "简明英汉词典", kind: .dictionary) }
+    static var builtInAI: [ServiceConfig] {
+        CloudServiceCatalog.builtInAIPresets.map { preset in
+            var service = ServiceConfig(name: preset.title, kind: preset.kind)
+            service.enabled = false
+            service.endpoint = preset.endpoint; service.model = preset.model; service.options = preset.options
+            service.scope = "translation"
+            return service
+        }
+    }
     static func systemMedia(capability: String, scope: String = "translation") -> ServiceConfig {
         var service = ServiceConfig(name: capability == "ocr" ? "离线文本识别" : "离线语音合成", kind: .apple)
         service.capability = capability; service.scope = scope
@@ -160,9 +169,10 @@ struct AppPreferences: Codable, Equatable {
     var translationOCRServiceID: UUID?
     private var ocrServiceConfigurationVersion = 3
     var ttsServiceID: UUID?
-    var services = [ServiceConfig.system, .dictionary, .systemMedia(capability: "ocr"),
+    var services = ServiceConfig.builtInAI + [ServiceConfig.system, .dictionary, .systemMedia(capability: "ocr"),
                     .systemMedia(capability: "ocr", scope: "standaloneOCR"), .systemMedia(capability: "tts")]
     private var dictionaryServiceConfigurationVersion = 1
+    private var builtInAIConfigurationVersion = 1
     var pinnedServiceIDs: [UUID] = []
     var collapsedServiceIDs: [UUID] = []
     var translationPinned = false
@@ -247,7 +257,7 @@ struct AppPreferences: Codable, Equatable {
         case renderMarkdown, showReasoning, autoTargetLanguage, primaryLanguage, secondaryLanguage
         case mergeLineBreaks, removeCommentMarkers, joinHyphenatedWords, compactBlankLines, smartOCRParagraphs
         case silentServiceID, historyLimit
-        case enableDictionary, dictionaryServiceConfigurationVersion, renderRemoteImages
+        case enableDictionary, dictionaryServiceConfigurationVersion, builtInAIConfigurationVersion, renderRemoteImages
         case autoCopyTranslationOCR, autoCopyFirstResult, autoSpeakSource, copyHighlightedWord, favoriteLanguages
         case selectionWindowPosition, inputWindowPosition, ocrWindowPosition, selectionInputDisplay, screenshotInputDisplay
         case maxInputHeight, showLanguageBar, showInputToggle, showScreenshotButton, showClipboardButton
@@ -307,6 +317,7 @@ struct AppPreferences: Codable, Equatable {
         historyLimit = max(100, min(100000, try values.decodeIfPresent(Int.self, forKey: .historyLimit) ?? historyLimit))
         enableDictionary = try values.decodeIfPresent(Bool.self, forKey: .enableDictionary) ?? enableDictionary
         let dictionaryConfigurationVersion = try values.decodeIfPresent(Int.self, forKey: .dictionaryServiceConfigurationVersion) ?? 0
+        let builtInAIVersion = try values.decodeIfPresent(Int.self, forKey: .builtInAIConfigurationVersion) ?? 0
         renderRemoteImages = try values.decodeIfPresent(Bool.self, forKey: .renderRemoteImages) ?? renderRemoteImages
         autoCopyTranslationOCR = try values.decodeIfPresent(Bool.self, forKey: .autoCopyTranslationOCR) ?? autoCopyTranslationOCR
         autoCopyFirstResult = try values.decodeIfPresent(Bool.self, forKey: .autoCopyFirstResult) ?? autoCopyFirstResult
@@ -372,6 +383,26 @@ struct AppPreferences: Codable, Equatable {
                 services.append(dictionary)
             } else if !values.contains(.services), let index = services.firstIndex(where: { $0.kind == .dictionary }) {
                 services[index].enabled = enableDictionary
+            }
+        }
+        if builtInAIVersion < 1 {
+            // Add disabled templates only once. Never replace a user's model,
+            // endpoint, credential identity, enabled state, or list ordering.
+            for template in ServiceConfig.builtInAI where !services.contains(where: {
+                guard $0.kind == .openAI && $0.capability == "translate" else { return false }
+                if $0.options["provider"] == template.options["provider"] { return true }
+                let existingHost = URLComponents(string: $0.endpoint)?.host?.lowercased()
+                let templateHost = URLComponents(string: template.endpoint)?.host?.lowercased()
+                return existingHost != nil && existingHost == templateHost
+            }) {
+                if template.options["provider"] == "zhipu" {
+                    // Place the missing template first without changing the
+                    // relative order or identity of any existing records.
+                    let firstTranslation = services.firstIndex { $0.capability == "translate" } ?? 0
+                    services.insert(template, at: firstTranslation)
+                } else {
+                    services.append(template)
+                }
             }
         }
         normalizeMediaSelections()

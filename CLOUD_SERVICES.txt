@@ -3,6 +3,8 @@ Pop 云端翻译、文字识别与朗读接口
 
 AI 翻译接口
 
+服务页的内置配置区提供智谱、硅基流动、系统翻译和本地词典。智谱与硅基流动是接口及模型预设，不是随包下载的模型权重，也不附带共享密钥；新增预设默认关闭，需填入个人 API Key 后启用。AI 配置按使用须知、模式、API Key、模型、自定义模型、地址排列；模型可从下拉选择或自定义。当前预设及官方来源见 docs/service-preset-sources.md。升级会保留原有服务和密钥身份，只补充缺失的禁用预设。
+
 在“服务 → 文本翻译 → 添加”选择对应提供商。通用 OpenAI 兼容协议可填写基础地址或完整 /chat/completions、API Key 和任意模型名称；DeepSeek、OpenRouter、Grok、Kimi 等已有可编辑预设。Gemini 与 Claude 使用各自的原生协议；中转商只提供 OpenAI 兼容地址时应选通用兼容预设。
 
 Azure OpenAI 需填资源 Endpoint、Deployment Name、API Key。API Version 预设为 2023-03-15-preview，请按资源实际支持的版本修改。也接受完整部署 URL 及唯一 api-version 参数；完整 URL 中部署名/版本优先于分开的输入。Azure 使用 api-key，不套用 Bearer。模型输入保留，预设 gpt-4.1-mini 不代表你的部署已包含该模型。

@@ -180,17 +180,17 @@ struct ServiceDraftEditor: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     if !(service.kind == .apple && service.capability == "tts" && ttsVoices.isEmpty) {
-                        VStack(alignment: .leading, spacing: 8) { Text("服务名称").font(.system(size: 13)); TextField("服务名称", text: $edit.service.name) }
+                        VStack(alignment: .leading, spacing: 5) { Text("服务名称").font(.system(size: 13)); TextField("服务名称", text: $edit.service.name) }
                     }
                     if service.kind == .apple { systemFields
                     } else if service.kind == .dictionary { dictionaryFields }
                     else if service.kind == .plugin { pluginFields }
                     else { cloudFields }
                     if let message { Text(message).font(.system(size: 11)).foregroundStyle(.secondary).textSelection(.enabled) }
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .textFieldStyle(.roundedBorder)
+        .textFieldStyle(ServiceSettingsTextFieldStyle())
         .onAppear { loadCredentialsIfNeeded(); ttsVoices = AVSpeechSynthesisVoice.speechVoices() }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in ttsVoices = AVSpeechSynthesisVoice.speechVoices() }
         .onChange(of: edit.credentialsLoaded) { _, loaded in if !loaded { loadCredentialsIfNeeded() } }
@@ -398,6 +398,118 @@ struct ServiceDraftEditor: View {
     }
 
     @ViewBuilder private var cloudFields: some View {
+        if isAI { aiFields } else { otherCloudFields }
+    }
+
+    private var modelSelection: Binding<String> {
+        Binding(get: {
+            service.options["modelSelection"] == "custom" || !CloudServiceCatalog.modelPresets(for: service).contains(where: { $0.id == service.model }) ? "__custom__" : service.model
+        }, set: { value in
+            if value == "__custom__" { edit.service.options["modelSelection"] = "custom" }
+            else { edit.service.model = value; edit.service.options.removeValue(forKey: "modelSelection") }
+        })
+    }
+
+    private var aiFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            serviceDivider
+            HStack {
+                Text("使用须知").font(.system(size: 13)); Spacer()
+                if let url = CloudServiceCatalog.configurationURL(for: service) {
+                    serviceButton("查看申请教程") { NSWorkspace.shared.open(url) }
+                }
+            }
+            Text(CloudServiceCatalog.configurationHint(for: service)).font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            serviceDivider
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("模式").font(.system(size: 13)); Spacer()
+                    BobSettingsPicker("模式", selection: Binding(get: { CloudServiceCatalog.mode(for: service.options) }, set: {
+                        edit.service = CloudServiceCatalog.settingOption("mode", value: $0, in: service)
+                    }), options: [("翻译", "translate"), ("润色", "polish"), ("自定义 Prompt", "custom")])
+                        .frame(width: 134, height: 24).disabled(!CloudServiceCatalog.isOptionApplicable("mode", to: service))
+                }
+                Text("「翻译」将原文转换为目标语言；「润色」修改和优化原文；「自定义 Prompt」使用你设置的角色设定（System Prompt）和用户指令（User Prompt）。")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text("可以添加同一提供商的多个服务，分别设置模式和模型。")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            serviceDivider
+            ForEach(fields) { field in
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(field.key == "apiKey" ? "API Key" : field.title).font(.system(size: 13))
+                    ServiceSettingsSecretField(title: field.key == "apiKey" ? "API Key" : field.title, value: secret(field.key))
+                    if field.key == "apiKey" {
+                        Text(field.required || CloudServiceCatalog.requiresPersonalKey(for: service)
+                             ? "请填写你自己的 API Key。Pop 不附带共享密钥或云额度；可用模型、费用及限额由你的服务商账户决定。"
+                             : "按接口要求填写凭据；本机服务无需认证时可留空。密钥在保存时写入 macOS 钥匙串。")
+                            .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            serviceDivider
+            HStack {
+                Text("模型").font(.system(size: 13)); Spacer()
+                BobSettingsPicker("模型", selection: modelSelection, options: CloudServiceCatalog.modelPresets(for: service).map { ($0.title, $0.id) } + [("自定义模型", "__custom__")])
+                    .frame(width: 190, height: 24)
+            }
+            Text("选择「自定义模型」后，可在下方填写服务商提供或本机已安装的模型名称。预设名称不代表你的账户已获得该模型的调用权限。")
+                .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            serviceDivider
+            VStack(alignment: .leading, spacing: 5) {
+                Text("自定义模型").font(.system(size: 13))
+                TextField("填写模型名称", text: $edit.service.model).disabled(modelSelection.wrappedValue != "__custom__")
+            }
+            serviceDivider
+            VStack(alignment: .leading, spacing: 5) {
+                Text("服务地址").font(.system(size: 13))
+                if CloudServiceCatalog.usesDeploymentName(service) {
+                    CloudServiceRevealField(placeholder: "Azure 资源根地址或完整部署请求 URL", text: $edit.service.endpoint)
+                } else { TextField(defaultEndpoint, text: $edit.service.endpoint) }
+            }
+            if service.kind == .openAI {
+                Menu("选择接口预设") {
+                    ForEach(CloudServiceCatalog.presets(for: service.kind)) { preset in
+                        Button(preset.title) { edit.service = CloudServiceCatalog.applying(preset, to: edit.service) }
+                    }
+                }
+            }
+            if CloudServiceCatalog.isSpecializedTranslationModel(service) {
+                Text(CloudServiceCatalog.specializedModelNotice).font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            ForEach(options.filter { $0.key != "mode" }) { field in
+                serviceDivider
+                VStack(alignment: .leading, spacing: 6) {
+                    if !field.choices.isEmpty {
+                        HStack {
+                            Text(field.title).font(.system(size: 13)); Spacer()
+                            BobSettingsPicker(field.title, selection: option(field), options: field.choices.map { (field.choiceTitle($0), $0) }).frame(width: 170, height: 24)
+                        }
+                    } else {
+                        Text(field.title).font(.system(size: 13))
+                        if ["prompt", "systemPrompt", "userPrompt"].contains(field.key) {
+                            TextEditor(text: option(field)).font(.system(size: 12)).scrollContentBackground(.hidden).padding(5).frame(minHeight: 85)
+                                .background(SettingsPalette.serviceField, in: RoundedRectangle(cornerRadius: 7))
+                                .overlay(RoundedRectangle(cornerRadius: 7).stroke(SettingsPalette.serviceFieldBorder, lineWidth: 1))
+                            Text(field.placeholder).font(.system(size: 10)).foregroundStyle(.secondary)
+                        } else if field.key == "deploymentName" { CloudServiceRevealField(placeholder: field.placeholder, text: option(field)) }
+                        else { TextField(field.placeholder, text: option(field)) }
+                    }
+                }.disabled(!CloudServiceCatalog.isOptionApplicable(field.key, to: service))
+            }
+            serviceDivider
+            serviceButton(testing ? "测试中…" : "测试连接") { testConnection() }.disabled(testing)
+            Text("测试使用当前草稿，不会保存配置。凭据仅在点击下方「保存」后写入系统钥匙串。")
+                .font(.system(size: 10)).foregroundStyle(.secondary)
+        }
+    }
+
+    private var serviceDivider: some View { Rectangle().fill(SettingsPalette.line).frame(height: 1).padding(.vertical, 2) }
+    private func serviceButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { Text(title).font(.system(size: 12)).padding(.horizontal, 12).frame(height: 24).background(SettingsPalette.serviceControl, in: RoundedRectangle(cornerRadius: 6)) }.buttonStyle(.plain)
+    }
+
+    @ViewBuilder private var otherCloudFields: some View {
         if service.kind == .openAI {
             Text(CloudServiceCatalog.configurationHint(for: service))
                 .font(.system(size: 11)).foregroundStyle(.secondary)

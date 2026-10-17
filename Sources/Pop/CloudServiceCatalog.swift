@@ -25,6 +25,12 @@ struct CloudServicePreset: Identifiable {
     var options: [String: String] = [:]
 }
 
+/// A suggested API model identifier, not a hosted account or downloaded model.
+struct CloudModelPreset: Identifiable, Equatable {
+    let id: String
+    let title: String
+}
+
 enum CloudServiceCatalog {
     static func secretFields(for kind: ServiceKind, options: [String: String] = [:]) -> [CloudServiceField] {
         func field(_ key: String, _ title: String) -> CloudServiceField { CloudServiceField(key: key, title: title, required: true) }
@@ -35,7 +41,9 @@ enum CloudServiceCatalog {
         case "tencent": return [field("secretId", "SecretId"), field("secretKey", "SecretKey")]
         case "aliyun": return [field("accessKeyId", "AccessKey ID"), field("accessKeySecret", "AccessKey Secret")]
         case "volcano", "amazon": return [field("accessKeyId", "Access Key ID"), field("secretAccessKey", "Secret Access Key"), CloudServiceField(key: "sessionToken", title: "临时凭据 Token（可选）")]
-        case "openAI": return [CloudServiceField(key: "apiKey", title: options["provider"] == "azure" ? "API Key" : "API Key（可选）", required: options["provider"] == "azure")]
+        case "openAI":
+            let required = ["azure", "zhipu", "siliconflow"].contains(options["provider"] ?? "")
+            return [CloudServiceField(key: "apiKey", title: required ? "API Key" : "API Key（可选）", required: required)]
         default: return [field("apiKey", "API Key")]
         }
     }
@@ -135,12 +143,59 @@ enum CloudServiceCatalog {
         let native = traditional.map { kind, title in
             CloudServicePreset(id: kind.rawValue.lowercased(), title: title, kind: kind, endpoint: defaultEndpoint(for: kind), options: defaultOptions(for: kind))
         }
-        let available = Dictionary(uniqueKeysWithValues: (native + openAIPresets.filter { $0.id != "siliconflow" }).map { ($0.id, $0) })
+        let available = Dictionary(uniqueKeysWithValues: (native + openAIPresets.filter { !["zhipu", "siliconflow"].contains($0.id) }).map { ($0.id, $0) })
         return ids.compactMap { available[$0] }
     }
 
     /// Existing self-key additions are kept apart from reference hosted services.
-    static var extensionPresets: [CloudServicePreset] { openAIPresets.filter { $0.id == "siliconflow" } }
+    static var extensionPresets: [CloudServicePreset] { builtInAIPresets }
+
+    /// Bundled configuration templates only. Both require the user's own Key.
+    static var builtInAIPresets: [CloudServicePreset] {
+        ["zhipu", "siliconflow"].compactMap { provider in openAIPresets.first { $0.id == provider } }
+    }
+
+    /// Display metadata for legacy official endpoints only. This never rewrites
+    /// stored options or changes the provider used by the request transport.
+    static func configurationProvider(for service: ServiceConfig) -> String? {
+        let explicit = service.options["provider"]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
+        if !explicit.isEmpty { return explicit }
+        guard service.kind == .openAI else { return nil }
+        switch URLComponents(string: service.endpoint)?.host?.lowercased() {
+        case "open.bigmodel.cn": return "zhipu"
+        case "api.siliconflow.cn": return "siliconflow"
+        default: return nil
+        }
+    }
+
+    static func requiresPersonalKey(for service: ServiceConfig) -> Bool {
+        service.kind == .openAI && ["zhipu", "siliconflow"].contains(configurationProvider(for: service) ?? "")
+    }
+
+    static func modelPresets(for service: ServiceConfig) -> [CloudModelPreset] {
+        guard service.kind == .openAI else { return [] }
+        switch configurationProvider(for: service) {
+        case "zhipu": return [
+            CloudModelPreset(id: "glm-4-flash-250414", title: "GLM-4-Flash-250414"),
+            CloudModelPreset(id: "glm-4-flashx-250414", title: "GLM-4-FlashX-250414"),
+            CloudModelPreset(id: "glm-4-plus", title: "GLM-4-Plus")
+        ]
+        case "siliconflow": return [
+            CloudModelPreset(id: "Qwen/Qwen2.5-7B-Instruct", title: "Qwen2.5-7B-Instruct"),
+            CloudModelPreset(id: "deepseek-ai/DeepSeek-V3.2", title: "DeepSeek-V3.2"),
+            CloudModelPreset(id: "deepseek-ai/DeepSeek-V4-Flash", title: "DeepSeek-V4-Flash")
+        ]
+        default: return []
+        }
+    }
+
+    static func configurationURL(for service: ServiceConfig) -> URL? {
+        switch configurationProvider(for: service) {
+        case "zhipu": return URL(string: "https://docs.bigmodel.cn/cn/guide/develop/openai/introduction")
+        case "siliconflow": return URL(string: "https://docs.siliconflow.cn/docs/userguide/quickstart")
+        default: return nil
+        }
+    }
 
     static func usesDeploymentName(_ service: ServiceConfig) -> Bool {
         service.kind == .openAI && service.options["provider"] == "azure"
@@ -199,11 +254,12 @@ enum CloudServiceCatalog {
     static let specializedModelNotice = "此翻译专用模型按当前目标语言处理原文，以下通用模式、Prompt 和生成参数不参与请求。切回普通模型后将恢复编辑并保留原值。"
 
     static func configurationHint(for service: ServiceConfig) -> String {
-        switch service.options["provider"] {
+        switch configurationProvider(for: service) {
         case "azure": return "填写 Azure 资源地址、部署名称和 API 版本；使用 api-key 认证，部署名称决定请求的模型。"
         case "qwen": return "普通模型使用 Chat Completions。qwen-mt 翻译模型使用专用翻译参数，目标语言来自当前翻译任务，不使用通用翻译指令。"
         case "doubao": return "推理接入点非空时优先使用。doubao-seed-translation- 模型使用 Responses 翻译协议，其余模型使用 Chat Completions。"
-        case "siliconflow": return "使用你自己的硅基流动 API Key 和账户额度，与 Bob 托管的内置服务不同。模型需按账户实际可用名称填写。"
+        case "zhipu": return "已预置智谱官方接口和 GLM 模型选项。需填写你自己的智谱 API Key；模型可用性和费用以智谱账户为准。Pop 不提供 Bob 的合作免密钥额度。"
+        case "siliconflow": return "已预置硅基流动官方接口和模型选项。需填写你自己的硅基流动 API Key；模型可用性和费用以硅基流动账户为准。Pop 不提供 Bob 的合作免密钥额度。"
         case "ollama": return "请先安装并运行 Ollama，再下载所需模型。这里连接的是你电脑上的 Ollama 服务，模型名称须与本机已有模型一致。"
         case "lmstudio": return "使用本机服务提供的 OpenAI 兼容接口。模型名称必须填写本机实际已安装或已加载的模型。"
         default: return "支持 OpenAI 兼容接口。填写账户实际可用的模型名称；密钥留空时不发送认证头，接口可能要求认证。"
@@ -211,11 +267,11 @@ enum CloudServiceCatalog {
     }
 
     private static var openAIPresets: [CloudServicePreset] {
-        func preset(_ id: String, _ title: String, _ endpoint: String, options: [String: String] = [:]) -> CloudServicePreset {
+        func preset(_ id: String, _ title: String, _ endpoint: String, model: String = "", options: [String: String] = [:]) -> CloudServicePreset {
             var values = defaultOptions(for: .openAI)
             values["provider"] = id
             for (key, value) in options { values[key] = value }
-            return CloudServicePreset(id: id, title: title, kind: .openAI, endpoint: endpoint, model: id == "azure" ? "gpt-4.1-mini" : "", options: values)
+            return CloudServicePreset(id: id, title: title, kind: .openAI, endpoint: endpoint, model: id == "azure" ? "gpt-4.1-mini" : model, options: values)
         }
         return [
             preset("openai", "OpenAI", "https://api.openai.com/v1"),
@@ -235,7 +291,8 @@ enum CloudServiceCatalog {
             preset("hunyuan", "混元", "https://tokenhub.tencentmaas.com/v1/chat/completions"),
             preset("gitee", "模力方舟", "https://ai.gitee.com/v1/chat/completions"),
             preset("kimi", "Kimi", "https://api.moonshot.cn/v1/chat/completions"),
-            preset("siliconflow", "硅基流动（自有密钥）", "https://api.siliconflow.cn/v1", options: ["maxTokensParameter": "max_tokens"])
+            preset("zhipu", "智谱翻译", "https://open.bigmodel.cn/api/paas/v4", model: "glm-4-flash-250414", options: ["maxTokensParameter": "max_tokens"]),
+            preset("siliconflow", "硅基流动翻译", "https://api.siliconflow.cn/v1", model: "Qwen/Qwen2.5-7B-Instruct", options: ["maxTokensParameter": "max_tokens"])
         ]
     }
 
