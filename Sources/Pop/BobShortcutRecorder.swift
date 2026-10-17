@@ -94,6 +94,11 @@ final class BobShortcutRecorderControl: NSControl {
         clearButton.frame = NSRect(x: bounds.width - 25, y: (bounds.height - 16) / 2, width: 16, height: 16)
     }
 
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
+    }
+
     func update(_ config: ShortcutConfig) {
         shortcut = config
         clearButton.isHidden = config.keyCode == UInt32.max
@@ -104,10 +109,15 @@ final class BobShortcutRecorderControl: NSControl {
     }
 
     override func draw(_ dirtyRect: NSRect) {
+        let isDark = effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let backgroundColor = isDark
+            ? NSColor(srgbRed: 58.0 / 255, green: 61.0 / 255, blue: 62.0 / 255, alpha: 1)
+            : NSColor.white
+        let borderColor = NSColor(calibratedWhite: isDark ? 0.30 : 0.83, alpha: 0.65)
         let outline = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 8, yRadius: 8)
-        NSColor.white.withAlphaComponent(isEnabled ? 1 : 0.65).setFill()
+        backgroundColor.withAlphaComponent(isEnabled ? 1 : 0.65).setFill()
         outline.fill()
-        (recording ? activeColor.withAlphaComponent(0.65) : NSColor(calibratedWhite: 0.83, alpha: 0.65)).setStroke()
+        (recording ? activeColor.withAlphaComponent(0.65) : borderColor).setStroke()
         outline.lineWidth = 1
         outline.stroke()
 
