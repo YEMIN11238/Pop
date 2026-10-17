@@ -62,7 +62,7 @@ enum FeatureSelfCheck {
         let migrated = try JSONDecoder().decode(AppPreferences.self, from: JSONSerialization.data(withJSONObject: ["services": [oldServiceObject], "ocrServiceID": legacyService.id.uuidString]))
         let translatedOCR = migrated.selectedOCRService(forTranslation: true)
         try check(migrated.selectedOCRService(forTranslation: false)?.id == legacyService.id && translatedOCR?.id != legacyService.id && translatedOCR?.credentialID == legacyService.id, "旧OCR复制为独立配置并保留凭据引用")
-        try check(translatedOCR?.options == legacyService.options && migrated.ocrServices(forTranslation: true).count == 2 && migrated.ocrServices(forTranslation: false).count == 2, "迁移保留各项配置并列出系统OCR")
+        try check(translatedOCR?.options == legacyService.options && migrated.ocrServices(forTranslation: true).count == 3 && migrated.ocrServices(forTranslation: false).count == 3 && migrated.services.filter({ $0.kind == .baidu && $0.capability == "ocr" }).allSatisfy({ !$0.enabled }), "迁移保留各项配置并列出系统OCR及禁用的百度OCR预设")
         let migratedAgain = try JSONDecoder().decode(AppPreferences.self, from: JSONEncoder().encode(migrated))
         try check(migratedAgain == migrated, "OCR列表迁移只执行一次，不重复克隆")
         var editedMigration = migrated

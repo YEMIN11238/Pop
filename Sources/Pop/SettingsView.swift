@@ -660,7 +660,7 @@ struct SettingsView: View {
                                     if service.kind == .apple || service.kind == .dictionary {
                                         Text("内置").font(.system(size: 9, weight: .medium)).foregroundStyle(.white)
                                             .frame(width: 30, height: 16).background(Color.teal, in: Capsule())
-                                    } else if CloudServiceCatalog.requiresPersonalKey(for: service) {
+                                    } else if CloudServiceCatalog.requiresPersonalKey(for: service) || (service.kind == .baidu && service.capability == "ocr") {
                                         Text("预设").font(.system(size: 9, weight: .medium)).foregroundStyle(.white)
                                             .frame(width: 30, height: 16).background(Color.teal, in: Capsule())
                                     }

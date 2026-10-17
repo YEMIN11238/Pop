@@ -61,6 +61,9 @@ struct ServiceSettingsIcon: View {
                     RoundedRectangle(cornerRadius: 1).fill(Color.purple).frame(width: 10, height: 5).offset(x: 2, y: -3)
                     RoundedRectangle(cornerRadius: 1).fill(Color.purple).frame(width: 10, height: 5).offset(x: -2, y: 2)
                 }
+            } else if service.kind == .baidu && service.capability == "ocr" {
+                Image(systemName: "cube.fill").font(.system(size: 12)).foregroundStyle(.blue)
+                    .overlay(alignment: .topLeading) { Circle().fill(.green).frame(width: 4, height: 4) }
             } else if service.kind == .apple && service.capability == "translate" {
                 Image(systemName: "character.bubble.fill").font(.system(size: 10)).foregroundStyle(.white)
                     .overlay(alignment: .bottomTrailing) { Text("文").font(.system(size: 5, weight: .bold)).padding(1).background(.cyan, in: RoundedRectangle(cornerRadius: 1)) }
@@ -71,7 +74,7 @@ struct ServiceSettingsIcon: View {
         }.accessibilityHidden(true)
     }
     private var background: Color {
-        if provider == "zhipu" || provider == "siliconflow" { return .white }
+        if provider == "zhipu" || provider == "siliconflow" || (service.kind == .baidu && service.capability == "ocr") { return .white }
         if service.kind == .dictionary { return .blue }
         if service.kind == .apple && service.capability == "translate" { return Color(white: 0.1) }
         return .clear

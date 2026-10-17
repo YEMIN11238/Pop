@@ -76,6 +76,13 @@ struct ServiceConfig: Codable, Identifiable, Equatable {
         service.capability = capability; service.scope = scope
         return service
     }
+    static func baiduOCR(scope: String) -> ServiceConfig {
+        var service = ServiceConfig(name: "百度 OCR", kind: .baidu)
+        service.enabled = false; service.capability = "ocr"; service.scope = scope
+        service.endpoint = CloudMediaCatalog.defaultEndpoint(for: .baidu, capability: "ocr")
+        service.options = CloudMediaCatalog.defaultOptions(for: .baidu, capability: "ocr")
+        return service
+    }
 }
 
 enum ServiceTriggerStrategy: String, CaseIterable {
@@ -170,9 +177,11 @@ struct AppPreferences: Codable, Equatable {
     private var ocrServiceConfigurationVersion = 3
     var ttsServiceID: UUID?
     var services = ServiceConfig.builtInAI + [ServiceConfig.system, .dictionary, .systemMedia(capability: "ocr"),
-                    .systemMedia(capability: "ocr", scope: "standaloneOCR"), .systemMedia(capability: "tts")]
+                    .baiduOCR(scope: "translation"), .systemMedia(capability: "ocr", scope: "standaloneOCR"),
+                    .baiduOCR(scope: "standaloneOCR"), .systemMedia(capability: "tts")]
     private var dictionaryServiceConfigurationVersion = 1
     private var builtInAIConfigurationVersion = 1
+    private var baiduOCRConfigurationVersion = 1
     var pinnedServiceIDs: [UUID] = []
     var collapsedServiceIDs: [UUID] = []
     var translationPinned = false
@@ -257,7 +266,7 @@ struct AppPreferences: Codable, Equatable {
         case renderMarkdown, showReasoning, autoTargetLanguage, primaryLanguage, secondaryLanguage
         case mergeLineBreaks, removeCommentMarkers, joinHyphenatedWords, compactBlankLines, smartOCRParagraphs
         case silentServiceID, historyLimit
-        case enableDictionary, dictionaryServiceConfigurationVersion, builtInAIConfigurationVersion, renderRemoteImages
+        case enableDictionary, dictionaryServiceConfigurationVersion, builtInAIConfigurationVersion, baiduOCRConfigurationVersion, renderRemoteImages
         case autoCopyTranslationOCR, autoCopyFirstResult, autoSpeakSource, copyHighlightedWord, favoriteLanguages
         case selectionWindowPosition, inputWindowPosition, ocrWindowPosition, selectionInputDisplay, screenshotInputDisplay
         case maxInputHeight, showLanguageBar, showInputToggle, showScreenshotButton, showClipboardButton
@@ -318,6 +327,7 @@ struct AppPreferences: Codable, Equatable {
         enableDictionary = try values.decodeIfPresent(Bool.self, forKey: .enableDictionary) ?? enableDictionary
         let dictionaryConfigurationVersion = try values.decodeIfPresent(Int.self, forKey: .dictionaryServiceConfigurationVersion) ?? 0
         let builtInAIVersion = try values.decodeIfPresent(Int.self, forKey: .builtInAIConfigurationVersion) ?? 0
+        let baiduOCRVersion = try values.decodeIfPresent(Int.self, forKey: .baiduOCRConfigurationVersion) ?? 0
         renderRemoteImages = try values.decodeIfPresent(Bool.self, forKey: .renderRemoteImages) ?? renderRemoteImages
         autoCopyTranslationOCR = try values.decodeIfPresent(Bool.self, forKey: .autoCopyTranslationOCR) ?? autoCopyTranslationOCR
         autoCopyFirstResult = try values.decodeIfPresent(Bool.self, forKey: .autoCopyFirstResult) ?? autoCopyFirstResult
@@ -405,6 +415,13 @@ struct AppPreferences: Codable, Equatable {
                 }
             }
         }
+        if baiduOCRVersion < 1 {
+            for scope in ["translation", "standaloneOCR"] where !services.contains(where: {
+                $0.kind == .baidu && $0.capability == "ocr" && $0.scope == scope
+            }) {
+                services.append(.baiduOCR(scope: scope))
+            }
+        }
         normalizeMediaSelections()
     }
 
@@ -448,7 +465,7 @@ struct AppPreferences: Codable, Equatable {
     private mutating func normalizeMediaSelections() {
         for scope in ["translation", "standaloneOCR"] {
             let indices = services.indices.filter { services[$0].capability == "ocr" && services[$0].scope == scope }
-            if let selected = indices.first(where: { services[$0].enabled }) ?? indices.first {
+            if let selected = indices.first(where: { services[$0].enabled }) ?? indices.first(where: { services[$0].kind == .apple }) {
                 for index in indices { services[index].enabled = index == selected }
             }
         }

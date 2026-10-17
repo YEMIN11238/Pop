@@ -11,7 +11,7 @@ struct AddServicePicker: View {
     let onCancel: () -> Void
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 20), count: 4)
     private var providers: [ServiceKind] {
-        CloudMediaCatalog.kinds(for: capability)
+        CloudMediaCatalog.kinds(for: capability).filter { !(capability == "ocr" && $0 == .baidu) }
     }
 
     var body: some View {
@@ -23,12 +23,18 @@ struct AddServicePicker: View {
                             ForEach(CloudServiceCatalog.builtInAIPresets) { preset in presetTile(preset) }
                         }
                         tile(capability == "ocr" ? "系统文字识别" : capability == "tts" ? "系统朗读" : "系统翻译", icon: "character.bubble", tint: .black, asset: providerAsset(.apple), service: capability == "translate" ? .system : nil) { onChoose(.system) }
+                        if capability == "ocr" {
+                            tile("百度 OCR", icon: "cube", tint: .blue, service: .baiduOCR(scope: "translation")) { onChoose(.provider(.baidu)) }
+                        }
                         if capability == "translate" {
                             tile("简明英汉词典", icon: "character.book.closed", tint: .blue, asset: "service_dict", service: .dictionary) { onChoose(.dictionary) }
                         }
                     }
                     if capability == "translate" {
                         Text("智谱与硅基流动内置的是接口和模型配置，使用时需填写你自己的 API Key。")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
+                    } else if capability == "ocr" {
+                        Text("百度 OCR 内置的是接口配置，需填写你自己的百度智能云 API Key 与 Secret Key。")
                             .font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                     group("自带密钥") {

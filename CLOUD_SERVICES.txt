@@ -17,6 +17,8 @@ Azure OpenAI 需填资源 Endpoint、Deployment Name、API Key。API Version 预
 
 以下为 OCR / TTS 适配说明。
 
+文本识别列表预置“离线文本识别”和“百度 OCR”。百度预设初始关闭，需要个人百度智能云 API Key 和 Secret Key；不包含 Bob 的试用凭据或额度。翻译截图的文本识别与独立 OCR 各保留一份配置，互不共享启停选择。升级复用已有百度 OCR 项，只补缺项；删除后不会在下次启动时自动恢复。
+
 当前原生媒体目录包含 Google、Microsoft、百度智能云、腾讯云和 Amazon 五家。
 每家均有 OCR 和 TTS 适配器。应用默认使用免费的本机 OCR 与系统朗读；
 新增云端服务保持禁用，需自行开通对应产品、填写密钥并手动启用。

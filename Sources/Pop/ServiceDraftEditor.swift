@@ -398,7 +398,46 @@ struct ServiceDraftEditor: View {
     }
 
     @ViewBuilder private var cloudFields: some View {
-        if isAI { aiFields } else { otherCloudFields }
+        if isAI { aiFields }
+        else if service.kind == .baidu && service.capability == "ocr" { baiduOCRFields }
+        else { otherCloudFields }
+    }
+
+    private var baiduOCRFields: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            serviceDivider
+            HStack {
+                Text("使用须知").font(.system(size: 13)); Spacer()
+                serviceButton("查看申请教程") {
+                    if let url = URL(string: "https://ai.baidu.com/ai-doc/OCR/tk3h7y2aq") { NSWorkspace.shared.open(url) }
+                }
+            }
+            Text("使用百度智能云文字识别接口。请先创建 OCR 应用，再填写个人 API Key 和 Secret Key；它们与百度翻译的 APP ID 和密钥不同。图片会发送至百度，额度及费用以你的百度智能云账户为准。本预设不包含 Bob 的 OCR 试用额度。")
+                .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            ForEach(fields) { field in
+                serviceDivider
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(field.title).font(.system(size: 13))
+                    ServiceSettingsSecretField(title: field.title, value: secret(field.key))
+                }
+            }
+            serviceDivider
+            VStack(alignment: .leading, spacing: 5) {
+                Text("服务地址").font(.system(size: 13))
+                TextField(defaultEndpoint, text: $edit.service.endpoint)
+            }
+            ForEach(options) { field in
+                serviceDivider
+                HStack {
+                    Text(field.title).font(.system(size: 13)); Spacer()
+                    BobSettingsPicker(field.title, selection: option(field), options: field.choices.map { (field.choiceTitle($0), $0) }).frame(width: 150, height: 24)
+                }
+            }
+            serviceDivider
+            serviceButton(testing ? "测试中…" : "测试连接") { testConnection() }.disabled(testing)
+            Text("测试使用当前草稿，并会发送合成测试图片；不会自动保存。凭据在点击下方「保存」后写入 macOS 钥匙串。")
+                .font(.system(size: 10)).foregroundStyle(.secondary)
+        }
     }
 
     private var modelSelection: Binding<String> {
